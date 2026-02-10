@@ -127,3 +127,33 @@ class SyntheticTelemetryGenerator:
         if step < 8:
             return min(100, value + random.uniform(2, 4))
         return min(100, value + random.uniform(6, 12))
+# --------------------------------------------------
+# SIMPLE TELEMETRY API FOR SYSTEM LOOPS
+# --------------------------------------------------
+
+_generator = SyntheticTelemetryGenerator()
+
+
+def generate_telemetry():
+    """
+    Lightweight telemetry snapshot for self-tuning loop.
+    Returns aggregated metrics compatible with extract_metrics().
+    """
+    events = _generator.generate_series(
+        entity_id="system",
+        entity_type="node",
+        duration=1,
+        pattern="healthy"
+    )
+
+    # Aggregate last values
+    cpu = next(e.value for e in reversed(events) if e.metric == "cpu_usage")
+    memory = next(e.value for e in reversed(events) if e.metric == "memory_usage")
+    disk = next(e.value for e in reversed(events) if e.metric == "disk_usage")
+
+    # Map to adaptive-system metrics
+    return {
+        "avg_latency": cpu * 2,          # synthetic latency proxy
+        "failure_rate": max(0, (cpu - 80) / 20),
+        "success_rate": 1 - max(0, (cpu - 80) / 20)
+    }

@@ -1,5 +1,6 @@
 import sqlite3
 
+
 class BehaviorAnalyzer:
     def __init__(self, db_path="storage/events.db"):
         self.db_path = db_path
@@ -45,3 +46,14 @@ class BehaviorAnalyzer:
         conn.close()
 
         return rows
+
+
+# --------------------------------------------------
+# SYSTEM STATE UPDATE (MODULE-LEVEL FUNCTION)
+# --------------------------------------------------
+
+def update_state_from_metrics(state, metrics):
+    state.avg_response_time = metrics.get("avg_response_time", 0)
+    state.failure_rate = metrics.get("failure_rate", 0)
+    state.success_rate = metrics.get("success_rate", 0)
+    return state

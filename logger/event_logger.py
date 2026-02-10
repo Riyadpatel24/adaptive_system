@@ -1,3 +1,4 @@
+import datetime
 from config import DB_PATH
 import sqlite3
 
@@ -46,3 +47,20 @@ class EventLogger:
 
         conn.commit()
         conn.close()
+        
+    # --------------------------------------------------
+# Module-level adaptation logger (for system loop)
+# --------------------------------------------------
+
+def log_adaptation(state):
+    from datetime import datetime
+
+    timestamp = datetime.utcnow().isoformat()
+
+    print(
+        f"[{timestamp}] ADAPTATION | "
+        f"timeout_ms={state.timeout_ms} | "
+        f"retry_limit={state.retry_limit} | "
+        f"mode={state.mode} | "
+        f"change={state.last_change}"
+    )

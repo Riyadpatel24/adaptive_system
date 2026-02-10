@@ -77,3 +77,31 @@ class PolicyEngine:
                 return "normal"
 
         return level
+    
+def should_adapt(state):
+    if state.mode in ("frozen", "stable"):
+        return False
+    return True
+
+def adapt_parameters(state):
+    if state.mode == "stable":
+        state.last_change = "no_change"
+        return state
+
+    state.adaptation_count += 1
+
+    if state.avg_response_time > state.timeout_ms:
+        state.timeout_ms = int(state.timeout_ms * 1.1)
+        state.last_change = "timeout_increased"
+
+    elif state.failure_rate < 0.05 and state.retry_limit > 1:
+        state.retry_limit -= 1
+        state.last_change = "retry_decreased"
+
+    if state.success_rate > 0.95:
+        state.mode = "stable"
+
+    if state.adaptation_count > 20:
+        state.mode = "frozen"
+
+    return state
