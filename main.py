@@ -4,6 +4,9 @@ from actions.action import Action, ActionType
 from actions.safety_guard import ActionSafetyGuard
 from actions.executor import ActionExecutor
 
+from analysis.recovery.recovery_engine import RecoveryEngine
+from analysis.recovery.cooldown_manager import CooldownManager
+
 from sre.telemetry_ingestion import ingest_synthetic_telemetry
 from sre.synthetic_telemetry import generate_telemetry, apply_policy_effect
 
@@ -36,6 +39,8 @@ from api.server import set_snapshot
 import threading
 import uvicorn
 
+ACTION_COOLDOWN_SECONDS = 30
+
 def start_api():
     uvicorn.run(
         "api.server:app",
@@ -50,7 +55,10 @@ def main():
 
     temporal_memory = TemporalMemory(window_size=5)
     time_analyzer = TemporalAnalyzer()
-
+    
+    recovery_engine = RecoveryEngine()
+    cooldown_manager = CooldownManager()
+    
     safety_guard = ActionSafetyGuard()
     executor = ActionExecutor()
 
@@ -119,10 +127,23 @@ def main():
             )
 
             allowed, changed = safety_guard.allow(action, temporal)
+            
+            now = time.time()
+            entity_state = snapshot.entities.get(entity_id, {})
+
+            cooldown_until = entity_state.get("cooldown_until")
+
+            if cooldown_until and now < cooldown_until:
+                snapshot.update_entity(
+                    entity_id=entity_id,
+                    action_status="COOLDOWN"
+                )
+                continue
 
             if changed:
                 if allowed:
                     executor.execute(action)
+
                     snapshot.update_entity(
                         entity_id=entity_id,
                         health=data["state"],
@@ -131,7 +152,9 @@ def main():
                         persistence=temporal["persistence"],
                         volatility=temporal["volatility"],
                         last_action=action.action_type.value,
-                        action_status="EXECUTED"
+                        action_status="EXECUTED",
+                        last_action_time=now,
+                        cooldown_until=now + ACTION_COOLDOWN_SECONDS
                     )
                 else:
                     snapshot.update_entity(
@@ -151,6 +174,29 @@ def main():
                         f"persistence={temporal['persistence']} "
                         f"volatility={temporal['volatility']}"
                     )
+                    
+        # -------- Phase 4: Recovery (minimal, no print changes) --------
+    entity_state = snapshot.entities.get(entity_id)
+
+    if entity_state:
+        recovery_state = recovery_engine.evaluate_recovery(entity_state)
+
+        # apply risk decay
+        recovery_engine.decay_risk(entity_state)
+
+        # cooldown remaining
+        remaining = cooldown_manager.remaining(entity_state)
+
+        snapshot.update_entity(
+            entity_id=entity_id,
+            health=entity_state["health"],
+            risk=entity_state["risk"],
+            trend=entity_state["trend"],
+            persistence=entity_state["persistence"],
+            volatility=entity_state["volatility"],
+            recovery_state=recovery_state,
+            cooldown_remaining=remaining
+        )
 
     risk_before = max(d["risk_score"] for d in entity_health.values())
     memory.record_risk_snapshot(risk_before)
@@ -160,6 +206,11 @@ def main():
         risk=risk_before,
         mode="initial"
     )
+    
+    # live system risk update
+    system_risk = max(e["risk"] for e in snapshot.entities.values())
+    snapshot.system["risk"] = system_risk
+
 
 
     print("\n=== Risk Trend ===")

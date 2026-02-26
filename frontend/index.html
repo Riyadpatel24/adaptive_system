@@ -28,6 +28,7 @@
     .HEALTHY { color: #22c55e; }
     .BLOCKED { color: #f97316; }
     .EXECUTED { color: #22c55e; }
+    .COOLDOWN { color: #38bdf8; }
   </style>
 </head>
 <body>
@@ -62,23 +63,33 @@
       tbody.innerHTML = "";
 
       for (const [id, e] of Object.entries(data.entities)) {
-        const row = document.createElement("tr");
+      const row = document.createElement("tr");
 
-        row.innerHTML = `
-          <td>${id}</td>
-          <td class="${e.health}">${e.health}</td>
-          <td>${e.risk}</td>
-          <td>${e.trend}</td>
-          <td>${e.persistence}</td>
-          <td>${e.volatility}</td>
-          <td>${e.last_action ?? "-"}</td>
-          <td class="${e.action_status ?? ""}">
-            ${e.action_status ?? "-"}
-          </td>
-        `;
+      const now = Date.now() / 1000;
 
-        tbody.appendChild(row);
+      let status = e.action_status ?? "-";
+      let statusClass = e.action_status ?? "";
+
+      if (e.cooldown_until && e.cooldown_until > now) {
+        status = "COOLDOWN";
+        statusClass = "COOLDOWN";
       }
+
+      row.innerHTML = `
+        <td>${id}</td>
+        <td class="${e.health}">${e.health}</td>
+        <td>${e.risk}</td>
+        <td>${e.trend}</td>
+        <td>${e.persistence}</td>
+        <td>${e.volatility}</td>
+        <td>${e.last_action ?? "-"}</td>
+        <td class="${statusClass}">
+          ${status}
+        </td>
+      `;
+
+      tbody.appendChild(row);
+    }
     }
 
     refresh();
