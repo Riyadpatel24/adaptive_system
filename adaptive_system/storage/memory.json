@@ -1,0 +1,194 @@
+{
+    "history": [
+        {
+            "timestamp": "2025-12-31T11:41:44.401748",
+            "metrics": {
+                "failure_rate": 1.0,
+                "cpu": 20.0,
+                "memory": 81.6
+            }
+        },
+        {
+            "timestamp": "2026-01-03T13:52:48.403510",
+            "metrics": {
+                "failure_rate": 1.0,
+                "cpu": 35.7,
+                "memory": 84.2
+            }
+        },
+        {
+            "timestamp": "2026-01-03T14:06:31.332709",
+            "metrics": {
+                "failure_rate": 1.0,
+                "cpu": 25.0,
+                "memory": 79.5
+            }
+        }
+    ],
+    "policy_history": [
+        {
+            "timestamp": "2025-12-31T11:41:44.401755",
+            "policy": {
+                "max_failure_rate": 0.5,
+                "response_level": "lockdown",
+                "cooldown_time": 30
+            }
+        },
+        {
+            "timestamp": "2026-01-03T13:52:48.403516",
+            "policy": {
+                "max_failure_rate": 0.5,
+                "response_level": "lockdown",
+                "cooldown_time": 30
+            }
+        },
+        {
+            "timestamp": "2026-01-03T14:06:31.332722",
+            "policy": {
+                "max_failure_rate": 0.5,
+                "response_level": "lockdown",
+                "cooldown_time": 30
+            }
+        }
+    ],
+    "policy_outcomes": [
+        {
+            "policy": "lockdown",
+            "before_failure": 0.9,
+            "after_failure": 0.4,
+            "effectiveness": 0.5
+        },
+        {
+            "context": {
+                "high_failure": true,
+                "recent_spike": false
+            },
+            "policy": "lockdown",
+            "before_failure_rate": 1.0,
+            "after_failure_rate": 0.4,
+            "effectiveness": 0.6
+        },
+        {
+            "context": {
+                "high_failure": true,
+                "recent_spike": true
+            },
+            "policy": "strict",
+            "before_failure_rate": 1.0,
+            "after_failure_rate": 0.6,
+            "effectiveness": 0.4
+        },
+        {
+            "context": {
+                "high_failure": true,
+                "recent_spike": false
+            },
+            "policy": "lockdown",
+            "before_failure_rate": 1.0,
+            "after_failure_rate": 0.4,
+            "effectiveness": 0.6
+        },
+        {
+            "context": {
+                "high_failure": true,
+                "recent_spike": false
+            },
+            "policy": "lockdown",
+            "before_failure_rate": 1.0,
+            "after_failure_rate": 0.4,
+            "effectiveness": 0.6
+        },
+        {
+            "context": {
+                "high_failure": true,
+                "recent_spike": false
+            },
+            "policy": "lockdown",
+            "before_failure_rate": 1.0,
+            "after_failure_rate": 0.4,
+            "effectiveness": 0.6
+        },
+        {
+            "context": {
+                "high_failure": true,
+                "recent_spike": true
+            },
+            "policy": "strict",
+            "before_failure_rate": 1.0,
+            "after_failure_rate": 0.6,
+            "effectiveness": 0.4
+        },
+        {
+            "policy": "lockdown",
+            "risk_before": 0.85,
+            "risk_after": 0.85,
+            "improvement": 0.0
+        }
+    ],
+    "decision_explanations": [
+        {
+            "policy": "lockdown",
+            "confidence": 0.4,
+            "signals": [
+                "Cognition suggested 'observe' with confidence 0.4",
+                "Learned policy preference found: 'lockdown'"
+            ],
+            "reasoning": [
+                "No dominant failure pattern identified",
+                "Historical outcomes indicate this policy reduced failures"
+            ]
+        },
+        {
+            "policy": "lockdown",
+            "confidence": 0.4,
+            "signals": [
+                "Cognition suggested 'observe' with confidence 0.4",
+                "Learned policy preference found: 'lockdown'"
+            ],
+            "reasoning": [
+                "No dominant failure pattern identified",
+                "Historical outcomes indicate this policy reduced failures"
+            ]
+        },
+        {
+            "policy": "lockdown",
+            "confidence": 0.4,
+            "signals": [
+                "Cognition suggested 'observe' with confidence 0.4",
+                "Learned policy preference found: 'lockdown'"
+            ],
+            "reasoning": [
+                "No dominant failure pattern identified",
+                "Historical outcomes indicate this policy reduced failures"
+            ]
+        },
+        {
+            "policy": "strict",
+            "confidence": 0.7,
+            "signals": [
+                "Cognition suggested 'strict_mode' with confidence 0.7",
+                "Learned policy preference found: 'strict'"
+            ],
+            "reasoning": [
+                "High recent failure rate detected",
+                "Historical outcomes indicate this policy reduced failures"
+            ]
+        }
+    ],
+    "risk_history": [
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9,
+        0.9
+    ],
+    "last_policy": {
+        "level": "lockdown",
+        "timestamp": "2026-01-09T14:24:07.447178"
+    }
+}
