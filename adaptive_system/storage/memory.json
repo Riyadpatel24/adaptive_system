@@ -179,15 +179,9 @@
         0.9,
         0.9,
         0.9,
-<<<<<<< HEAD
         0.9,
         0.9,
-        0.85,
-=======
-        0.85,
-        0.85,
         0.9,
->>>>>>> a40d52c (updated frontend)
         0.9,
         0.9,
         0.9,
@@ -195,16 +189,6 @@
     ],
     "last_policy": {
         "level": "lockdown",
-<<<<<<< HEAD
-        "timestamp": "2026-02-26T05:43:04.072105"
-=======
-        "timestamp": "2026-02-16T03:54:08.320020"
->>>>>>> a40d52c (updated frontend)
-    },
-    "system_state": {
-        "timeout_ms": 220,
-        "retry_limit": 3,
-        "adaptation_count": 7,
-        "mode": "learning"
+        "timestamp": "2026-01-09T14:24:07.447178"
     }
 }
