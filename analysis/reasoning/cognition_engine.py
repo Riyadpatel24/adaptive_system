@@ -98,3 +98,33 @@ class CognitionEngine:
             "confidence": 0.4,
             "explanation": "System health acceptable"
         }
+        
+    def reason_from_entity(self, entity_data: dict) -> dict:
+        """
+        Reason about a SINGLE entity's health.
+        Call this inside the entity loop — each entity gets
+        its own decision, not a decision based on the worst entity.
+        """
+        state = entity_data.get("state", "HEALTHY")
+        risk = entity_data.get("risk_score", 0.0)
+        explanation = entity_data.get("explanation", [])
+
+        if state == "CRITICAL":
+            return {
+                "decision_hint": "lockdown",
+                "confidence": min(1.0, risk),
+                "explanation": "Entity is CRITICAL: " + "; ".join(explanation)
+            }
+
+        if state == "DEGRADED":
+            return {
+                "decision_hint": "strict_mode",
+                "confidence": min(1.0, risk),
+                "explanation": "Entity is DEGRADED: " + "; ".join(explanation)
+            }
+
+        return {
+            "decision_hint": "observe",
+            "confidence": 0.2,
+            "explanation": "Entity health is acceptable."
+        }

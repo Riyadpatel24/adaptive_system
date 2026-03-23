@@ -1177,336 +1177,206 @@ body::before {
 </div>
 
 <script>
-// ─── Clock ─────────────────────────────────────────────
+
+/* CLOCK */
+
 function updateClock() {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-US', { hour12: false });
+  document.getElementById("clock").textContent =
+    new Date().toLocaleTimeString("en-US",{hour12:false});
 }
 
-// ─── Chart Setup ────────────────────────────────────────
-const chartDefaults = {
-  responsive: true,
-  maintainAspectRatio: false,
-  animation: { duration: 400 },
-  plugins: { legend: { display: false }, tooltip: { enabled: false } },
-  scales: {
-    x: { display: false },
-    y: {
-      display: true,
-      min: 0, max: 1,
-      grid: { color: 'rgba(17,30,48,.8)', lineWidth: 1 },
-      border: { display: false },
-      ticks: { color: '#2a4050', font: { family: "'JetBrains Mono'", size: 9 }, maxTicksLimit: 4, callback: v => (v*100).toFixed(0)+'%' }
-    }
-  }
-};
+/* CHART SETUP */
 
-const riskHistory = Array(60).fill(0);
-const riskCtx = document.getElementById('riskChart').getContext('2d');
-const riskChart = new Chart(riskCtx, {
-  type: 'line',
-  data: {
-    labels: riskHistory.map((_,i) => i),
-    datasets: [{
-      data: riskHistory,
-      borderColor: '#00e5ff',
-      borderWidth: 1.5,
-      fill: true,
-      backgroundColor: ctx => {
-        const g = ctx.chart.ctx.createLinearGradient(0,0,0,130);
-        g.addColorStop(0,'rgba(0,229,255,.18)');
-        g.addColorStop(1,'rgba(0,229,255,0)');
-        return g;
-      },
-      tension: 0.4,
-      pointRadius: 0
+const riskHistory = [];
+const entityHistory = [];
+
+const riskCtx = document.getElementById("riskChart").getContext("2d");
+
+const riskChart = new Chart(riskCtx,{
+  type:"line",
+  data:{
+    labels:[],
+    datasets:[{
+      data:[],
+      borderColor:"#00e5ff",
+      borderWidth:1.5,
+      fill:true,
+      backgroundColor:"rgba(0,229,255,.15)",
+      tension:.4,
+      pointRadius:0
     }]
   },
-  options: { ...chartDefaults }
-});
-
-const entityHistory = Array(60).fill(0);
-const entityCtx = document.getElementById('entityChart').getContext('2d');
-const entityChart = new Chart(entityCtx, {
-  type: 'bar',
-  data: {
-    labels: entityHistory.map((_,i) => i),
-    datasets: [{
-      data: entityHistory,
-      backgroundColor: 'rgba(0,255,179,.3)',
-      borderColor: '#00ffb3',
-      borderWidth: 1
-    }]
-  },
-  options: {
-    ...chartDefaults,
-    scales: {
-      ...chartDefaults.scales,
-      y: { ...chartDefaults.scales.y, max: 5, ticks: { ...chartDefaults.scales.y.ticks, callback: v => v } }
+  options:{
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{display:false},
+      y:{
+        min:0,
+        max:1,
+        ticks:{
+          callback:v => (v*100)+"%"
+        }
+      }
     }
   }
 });
 
-// ─── State Storage ──────────────────────────────────────
-let lastData = null;
-let adaptLog = [];
+const entityCtx = document.getElementById("entityChart").getContext("2d");
 
-// ─── Fetch ──────────────────────────────────────────────
-async function fetchState() {
-  try {
-    const res = await fetch('http://localhost:8000/state');
+const entityChart = new Chart(entityCtx,{
+  type:"bar",
+  data:{
+    labels:[],
+    datasets:[{
+      data:[],
+      backgroundColor:"rgba(0,255,179,.3)",
+      borderColor:"#00ffb3"
+    }]
+  },
+  options:{
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{display:false},
+      y:{min:0,max:10}
+    }
+  }
+});
+
+/* FETCH STATE */
+
+async function fetchState(){
+  try{
+    const res = await fetch("http://localhost:8000/state");
     const data = await res.json();
-    lastData = data;
-    updateAll(data);
-  } catch(e) {
-    document.getElementById('engine-mode').textContent = 'Backend Offline';
-    document.getElementById('engine-pill').style.borderColor = 'rgba(255,56,96,.3)';
-    document.getElementById('engine-pill').style.color = 'var(--red)';
+    updateUI(data);
+
+    document.getElementById("engine-mode").textContent="Adaptive Engine Active";
+
+  }catch(e){
+
+    document.getElementById("engine-mode").textContent="Backend Offline";
+
   }
 }
 
-// ─── Master Update ──────────────────────────────────────
-function updateAll(data) {
+/* STATE LOGIC */
+
+function computeState(risk){
+
+  if(risk >= 0.85) return "CRITICAL";
+  if(risk >= 0.65) return "DEGRADED";
+
+  return "OK";
+
+}
+
+/* UPDATE UI */
+
+function updateUI(data){
+
   const entities = data.entities || {};
-  const system   = data.system   || {};
-  const cognition = data.cognition || {};
-  const policy   = data.policy   || {};
-  const learning = data.learning || {};
-  const signals  = data.signals  || {};
+  const entityEntries = Object.entries(entities);
 
-  const entryList = Object.entries(entities);
-  const totalEntities = entryList.length;
-  const critCount = entryList.filter(([,e]) => e.state === 'CRITICAL').length;
-  const sysRisk   = system.risk !== undefined ? system.risk : (entryList.reduce((s,[,e]) => s + (e.risk||0), 0) / Math.max(1, totalEntities));
+  const totalEntities = entityEntries.length;
 
-  // ── METRICS ──
-  const riskPct = Math.round(sysRisk * 100);
-  const riskEl  = document.getElementById('m-risk');
-  riskEl.textContent = riskPct;
-  riskEl.className   = 'metric-num ' + (riskPct >= 80 ? 'crit' : riskPct >= 60 ? 'warn' : 'ok');
-  const riskBar = document.getElementById('b-risk');
-  riskBar.style.width = riskPct + '%';
-  riskBar.className = 'fill ' + (riskPct >= 80 ? 'crit' : riskPct >= 60 ? 'warn' : 'ok');
+  let criticalCount = 0;
 
-  document.getElementById('m-crit').textContent = critCount;
-  document.getElementById('b-crit').style.width = Math.round((critCount / Math.max(1,totalEntities)) * 100) + '%';
+  entityEntries.forEach(([id,e])=>{
+    const r = e.risk || 0;
+    const state = computeState(r);
 
-  document.getElementById('m-total').textContent = totalEntities;
-
-  const modeEl = document.getElementById('m-mode');
-  modeEl.textContent = (policy.response_level || system.mode || 'NOMINAL').toUpperCase();
-
-  // engine pill
-  const hint = cognition.hint || cognition.decision_hint || system.hint || '';
-  if (hint) document.getElementById('engine-mode').textContent = 'Mode: ' + hint.toUpperCase();
-
-  // ── CHARTS ──
-  riskHistory.push(sysRisk);
-  riskHistory.shift();
-  riskChart.data.datasets[0].data = [...riskHistory];
-  riskChart.update('none');
-
-  entityHistory.push(totalEntities);
-  entityHistory.shift();
-  entityChart.data.datasets[0].data = [...entityHistory];
-  entityChart.update('none');
-
-  // ── TABLES (dash + full) ──
-  const dashRows = entryList.map(([id,e]) => {
-    const rp = (e.risk * 100).toFixed(1);
-    const cls = e.state === 'CRITICAL' ? 'crit' : e.state === 'DEGRADED' ? 'warn' : 'ok';
-    return `<tr>
-      <td><div class="proc-name"><div class="proc-led" style="background:var(--${cls==='crit'?'red':cls==='warn'?'amber':'green'})"></div>${id}</div></td>
-      <td>${rp}%<span class="mini-bar"><span class="mini-fill ${cls}" style="width:${rp}%"></span></span></td>
-      <td><span class="pill ${e.state==='CRITICAL'?'standby':e.state==='DEGRADED'?'standby':'active'}" style="${e.state==='CRITICAL'?'background:var(--red-dim);color:var(--red);border-color:rgba(255,56,96,.3)':''}">${e.state||'OK'}</span></td>
-      <td style="font-family:var(--mono);font-size:10px;color:var(--text-mid)">${e.trend||'stable'}</td>
-    </tr>`;
-  }).join('');
-
-  ['dash-tbody'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = dashRows;
+    if(state==="CRITICAL") criticalCount++;
   });
 
-  const fullRows = entryList.map(([id,e]) => {
-    const rp = (e.risk * 100).toFixed(1);
-    const cls = e.state === 'CRITICAL' ? 'crit' : e.state === 'DEGRADED' ? 'warn' : 'ok';
-    return `<tr>
-      <td style="font-family:var(--mono);font-size:11px;color:var(--cyan)">${id}</td>
-      <td>${rp}%<span class="mini-bar"><span class="mini-fill ${cls}" style="width:${rp}%"></span></span></td>
-      <td><span class="pill ${e.state==='CRITICAL'?'standby':'active'}" style="${e.state==='CRITICAL'?'background:var(--red-dim);color:var(--red);border-color:rgba(255,56,96,.3)':e.state==='DEGRADED'?'background:var(--amber-dim);color:var(--amber);border-color:rgba(255,171,0,.3)':''}">${e.state||'OK'}</span></td>
-      <td style="font-family:var(--mono);font-size:10px;color:var(--text-mid)">${e.trend||'—'}</td>
-      <td style="font-family:var(--mono);font-size:10px;color:var(--text-mid)">${e.persistence||'—'}</td>
-      <td style="font-family:var(--mono);font-size:10px;color:var(--text-mid)">${e.volatility !== undefined ? e.volatility.toFixed(2) : '—'}</td>
-    </tr>`;
-  }).join('');
+  const systemRisk =
+    data.system?.risk ??
+    entityEntries.reduce((s,[,e])=>s+(e.risk||0),0)/Math.max(totalEntities,1);
 
-  const fullEl = document.getElementById('full-tbody');
-  if (fullEl) fullEl.innerHTML = fullRows;
+  const riskPercent = Math.round(systemRisk*100);
 
-  // ── SIGNAL TABLE ──
-  const sigEl = document.getElementById('signal-tbody');
-  if (sigEl && signals && typeof signals === 'object') {
-    const sigs = [];
-    Object.entries(signals).forEach(([entity, smap]) => {
-      if (typeof smap === 'object') {
-        Object.entries(smap).forEach(([signame, sval]) => {
-          sigs.push({ entity, signame, signal: sval.signal || sval, confidence: sval.confidence });
-        });
-      }
-    });
-    sigEl.innerHTML = sigs.map(s => {
-      const v = typeof s.signal === 'number' ? s.signal.toFixed(2) : s.signal;
-      const conf = s.confidence !== undefined ? (s.confidence * 100).toFixed(0) + '%' : '—';
-      return `<tr>
-        <td style="font-family:var(--mono);font-size:11px;color:var(--cyan)">${s.entity}</td>
-        <td style="font-family:var(--mono);font-size:10px;color:var(--text-mid)">${s.signame}</td>
-        <td style="font-family:var(--mono);font-size:11px;color:${parseFloat(v)<0?'var(--red)':'var(--green)'}">${v}</td>
-        <td style="font-family:var(--mono);font-size:10px;color:var(--text-mid)">${conf}</td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="4" style="color:var(--text-mid);font-family:var(--mono);font-size:11px;padding:10px">No signals</td></tr>';
-  }
+  /* MAIN METRICS */
 
-  // ── THREATS ──
-  const score = Math.round(sysRisk * 100);
-  const levelEl = document.getElementById('tb-level');
-  const banner  = document.getElementById('threat-banner');
-  const scoreEl = document.getElementById('tb-score');
-  const level   = score >= 80 ? 'CRITICAL' : score >= 60 ? 'MEDIUM' : 'LOW';
-  const lvCls   = level === 'CRITICAL' ? 'critical' : level === 'MEDIUM' ? 'medium' : '';
+  const riskEl = document.getElementById("m-risk");
+  riskEl.textContent = riskPercent+"%";
 
-  levelEl.textContent = level;
-  levelEl.className   = 'tb-level ' + lvCls;
-  banner.className    = 'threat-banner ' + lvCls;
-  scoreEl.textContent = score;
-  scoreEl.className   = 'tb-score ' + lvCls;
+  if(riskPercent >= 80) riskEl.className="metric-num crit";
+  else if(riskPercent >=60) riskEl.className="metric-num warn";
+  else riskEl.className="metric-num ok";
 
-  document.getElementById('tb-hint').textContent = (cognition.hint || cognition.decision_hint || system.hint || '—').toUpperCase();
-  document.getElementById('tb-trend').textContent = (system.trend || '—').toUpperCase();
+  document.getElementById("b-risk").style.width=riskPercent+"%";
 
-  // critical / degraded lists
-  const critList  = entryList.filter(([,e]) => e.state === 'CRITICAL');
-  const degradList = entryList.filter(([,e]) => e.state === 'DEGRADED');
+  document.getElementById("m-crit").textContent=criticalCount;
 
-  document.getElementById('crit-list').innerHTML = critList.length ? critList.map(([id,e]) => `
-    <div class="status-row">
-      <div class="dot-ind" style="background:var(--red);box-shadow:0 0 6px var(--red)"></div>
-      <div class="status-lbl">${id}</div>
-      <div class="pill standby" style="background:var(--red-dim);color:var(--red);border-color:rgba(255,56,96,.3)">risk ${(e.risk*100).toFixed(0)}%</div>
-    </div>`).join('') : '<div style="font-family:var(--mono);font-size:11px;color:var(--green);padding:8px 0;">No critical entities</div>';
+  document.getElementById("m-total").textContent=totalEntities;
 
-  document.getElementById('degrad-list').innerHTML = degradList.length ? degradList.map(([id,e]) => `
-    <div class="status-row">
-      <div class="dot-ind a"></div>
-      <div class="status-lbl">${id}</div>
-      <div class="pill standby">risk ${(e.risk*100).toFixed(0)}%</div>
-    </div>`).join('') : '<div style="font-family:var(--mono);font-size:11px;color:var(--green);padding:8px 0;">No degraded entities</div>';
+  document.getElementById("m-mode").textContent =
+    (data.system?.mode || "initial").toUpperCase();
 
-  // cognition box
-  const cog = cognition;
-  document.getElementById('cognition-box').innerHTML = cog.explanation
-    ? `<span style="color:var(--text)">${cog.explanation}</span>`
-    : (data.explanation ? `<span style="color:var(--text)">${data.explanation}</span>`
-    : `<span style="color:var(--text-mid)">No cognition data available.</span>`);
+  /* CHART UPDATE */
 
-  // ── LOGS ──
-  addLog('info', `State updated | entities=${totalEntities} | risk=${(sysRisk*100).toFixed(1)}%`);
+  riskHistory.push(systemRisk);
 
-  // ── ADAPT LIST ──
-  if (data.adaptations) {
-    data.adaptations.forEach(a => {
-      if (!adaptLog.find(x => x.ts === a.timestamp)) {
-        adaptLog.unshift(a);
-      }
-    });
-    renderAdaptList();
-  }
+  if(riskHistory.length>60) riskHistory.shift();
+
+  riskChart.data.labels=riskHistory.map((_,i)=>i);
+  riskChart.data.datasets[0].data=riskHistory;
+  riskChart.update();
+
+  entityHistory.push(totalEntities);
+
+  if(entityHistory.length>60) entityHistory.shift();
+
+  entityChart.data.labels=entityHistory.map((_,i)=>i);
+  entityChart.data.datasets[0].data=entityHistory;
+  entityChart.update();
+
+  /* TABLE */
+
+  const tbody=document.getElementById("dash-tbody");
+
+  if(!tbody) return;
+
+  tbody.innerHTML = entityEntries.map(([id,e])=>{
+
+    const r=e.risk || 0;
+    const rp=(r*100).toFixed(1);
+
+    const state=computeState(r);
+
+    let cls="ok";
+
+    if(state==="CRITICAL") cls="crit";
+    if(state==="DEGRADED") cls="warn";
+
+    return `
+    <tr>
+      <td>${id}</td>
+      <td>${rp}%</td>
+      <td>${state}</td>
+      <td>${e.trend || "stable"}</td>
+    </tr>
+    `;
+
+  }).join("");
+
 }
 
-// ─── Logs ────────────────────────────────────────────────
-let logCount = 0;
-const MAX_LOGS = 200;
+/* INIT */
 
-function addLog(level, msg) {
-  const term = document.getElementById('log-term');
-  if (!term) return;
-  const cursor = term.querySelector('.cursor');
-  if (cursor) cursor.remove();
+document.addEventListener("DOMContentLoaded",()=>{
 
-  const now = new Date().toLocaleTimeString('en-US', { hour12: false });
-  const row = document.createElement('div');
-  row.className = 'log-row';
-  row.innerHTML = `<span class="log-t">${now}</span><span class="log-lv ${level}">${level.toUpperCase().padEnd(4)}</span><span class="log-m">${msg}</span>`;
-  term.appendChild(row);
-
-  const cur = document.createElement('span');
-  cur.className = 'cursor';
-  term.appendChild(cur);
-
-  logCount++;
-  if (logCount > MAX_LOGS) {
-    const rows = term.querySelectorAll('.log-row');
-    if (rows.length > MAX_LOGS) rows[0].remove();
-  }
-  term.scrollTop = term.scrollHeight;
-}
-
-// ─── Action Log ─────────────────────────────────────────
-function addActionLog(msg) {
-  const el = document.getElementById('action-log');
-  if (!el) return;
-  const now = new Date().toLocaleTimeString('en-US', { hour12: false });
-  const row = document.createElement('div');
-  row.className = 'log-row';
-  row.innerHTML = `<span class="log-t">${now}</span><span class="log-lv ok">ACT </span><span class="log-m"><span>${msg}</span></span>`;
-  el.appendChild(row);
-  el.scrollTop = el.scrollHeight;
-}
-
-function cmdAction(cmd) {
-  const msgs = {
-    scan: 'Full system scan initiated...',
-    kill: 'Kill signal sent to flagged process.',
-    protect: 'Maximum protection mode activated.',
-    snapshot: 'System state snapshot captured.',
-    isolate: 'Target process isolated in sandbox.',
-    report: 'Generating system health report...'
-  };
-  addActionLog(msgs[cmd] || cmd);
-  addLog('info', msgs[cmd] || cmd);
-}
-
-// ─── Adapt List ─────────────────────────────────────────
-function renderAdaptList() {
-  const el = document.getElementById('adapt-list');
-  if (!el || !adaptLog.length) return;
-  el.innerHTML = adaptLog.slice(0,8).map(a => `
-    <div class="adapt-row">
-      <div class="adapt-time">${(a.timestamp||'').substring(11,19)||'—'}</div>
-      <div class="adapt-badge">${a.change||'adapt'}</div>
-      <div class="adapt-content">
-        ${a.mode ? `<div style="color:var(--text)">${a.mode.toUpperCase()}</div>` : ''}
-        <div class="adapt-kv">timeout=<span>${a.timeout_ms||'—'}ms</span> retry=<span>${a.retry_limit||'—'}</span></div>
-      </div>
-    </div>`).join('');
-}
-
-// ─── Navigation ─────────────────────────────────────────
-function showPage(name, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  el.classList.add('active');
-}
-
-// ─── Init ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
   updateClock();
-  setInterval(updateClock, 1000);
-  addLog('info', 'Dashboard initialized. Connecting to backend...');
+  setInterval(updateClock,1000);
+
   fetchState();
-  setInterval(fetchState, 2000);
+  setInterval(fetchState,2000);
+
 });
+
 </script>
 </body>
 </html>

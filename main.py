@@ -1,4 +1,6 @@
 import time
+import threading
+import uvicorn
 
 from actions.action import Action, ActionType
 from actions.safety_guard import ActionSafetyGuard
@@ -13,7 +15,10 @@ from sre.synthetic_telemetry import generate_telemetry, apply_policy_effect
 from analysis.telemetry_normalizer import TelemetryNormalizer
 from analysis.signals.signal_analyzer import SignalAnalyzer
 from analysis.reasoning.cognition_engine import CognitionEngine
-from analysis.system_metrics import extract_metrics
+
+from analysis.reasoning.dependency_graph import DependencyGraph
+from analysis.reasoning.root_cause_engine import RootCauseEngine
+from analysis.reasoning.failure_predictor import FailurePredictor
 
 from analysis.policy.policy_engine import (
     PolicyEngine,
@@ -26,20 +31,14 @@ from storage.temporal_memory import TemporalMemory
 from analysis.signals.time_analyzer import TemporalAnalyzer
 
 from models.system_state import SystemState
-from logger.event_logger import log_adaptation
-
-
-def collect_telemetry():
-    return generate_telemetry()
-
 from models.state_snapshot import StateSnapshot
-snapshot = StateSnapshot()
 
+from logger.event_logger import log_adaptation
 from api.server import set_snapshot
-import threading
-import uvicorn
+
 
 ACTION_COOLDOWN_SECONDS = 30
+
 
 def start_api():
     uvicorn.run(
@@ -50,228 +49,73 @@ def start_api():
     )
 
 
+def collect_telemetry():
+    return generate_telemetry()
+
+
 def main():
+
     print("\n=== Autonomous SRE System Started ===\n")
+
+    snapshot = StateSnapshot()
 
     temporal_memory = TemporalMemory(window_size=5)
     time_analyzer = TemporalAnalyzer()
-    
+
     recovery_engine = RecoveryEngine()
     cooldown_manager = CooldownManager()
-    
+
     safety_guard = ActionSafetyGuard()
     executor = ActionExecutor()
 
-    ingest_synthetic_telemetry()
-    print("Synthetic telemetry ingested.")
+    memory = Memory()
 
     normalizer = TelemetryNormalizer()
-    signals = normalizer.normalize(window_size=20)
-
-    print("\n=== Normalized Signals ===")
-    for s in signals:
-        print(
-            f"{s['entity_id']} | {s['metric']} | "
-            f"signal={s['signal']} | confidence={s['confidence']}"
-        )
-
     analyzer = SignalAnalyzer()
-    entity_health = analyzer.analyze(signals)
 
-    print("\n=== Entity Health + Temporal Analysis ===")
-    for entity_id, data in entity_health.items():
-        risk = data["risk_score"]
-
-        temporal_memory.record(entity_id, risk)
-        history = temporal_memory.get_history(entity_id)
-        temporal = time_analyzer.analyze(history)
-        
-        snapshot.update_entity(
-            entity_id=entity_id,
-            health=data["state"],
-            risk=risk,
-            trend=temporal["trend"],
-            persistence=temporal["persistence"],
-            volatility=temporal["volatility"]
-        )
-
-        print(
-            f"{entity_id}: state={data['state']} risk={risk} | "
-            f"trend={temporal['trend']} "
-            f"slope={temporal['slope']} "
-            f"volatility={temporal['volatility']} "
-            f"persistence={temporal['persistence']}"
-        )
-
-    memory = Memory()
     cognition = CognitionEngine(memory)
-    thought = cognition.reason_from_health(entity_health)
-
-    print("\n=== Cognition ===")
-    print(f"Decision Hint: {thought['decision_hint']}")
-    print(f"Confidence: {thought['confidence']}")
-    print("Explanation:")
-    print(thought["explanation"])
-
-    print("\n=== Action Evaluation ===")
-    for entity_id, data in entity_health.items():
-        history = temporal_memory.get_history(entity_id)
-        temporal = time_analyzer.analyze(history)
-
-        if thought["decision_hint"] == "lockdown":
-            action = Action(
-                action_type=ActionType.LOCKDOWN,
-                target=entity_id,
-                reason=thought["explanation"],
-                confidence=thought["confidence"]
-            )
-
-            allowed, changed = safety_guard.allow(action, temporal)
-            
-            now = time.time()
-            entity_state = snapshot.entities.get(entity_id, {})
-
-            cooldown_until = entity_state.get("cooldown_until")
-
-            if cooldown_until and now < cooldown_until:
-                snapshot.update_entity(
-                    entity_id=entity_id,
-                    action_status="COOLDOWN"
-                )
-                continue
-
-            if changed:
-                if allowed:
-                    executor.execute(action)
-
-                    snapshot.update_entity(
-                        entity_id=entity_id,
-                        health=data["state"],
-                        risk=data["risk_score"],
-                        trend=temporal["trend"],
-                        persistence=temporal["persistence"],
-                        volatility=temporal["volatility"],
-                        last_action=action.action_type.value,
-                        action_status="EXECUTED",
-                        last_action_time=now,
-                        cooldown_until=now + ACTION_COOLDOWN_SECONDS
-                    )
-                else:
-                    snapshot.update_entity(
-                        entity_id=entity_id,
-                        health=data["state"],
-                        risk=data["risk_score"],
-                        trend=temporal["trend"],
-                        persistence=temporal["persistence"],
-                        volatility=temporal["volatility"],
-                        last_action=action.action_type.value,
-                        action_status="BLOCKED"
-                    )
-
-                    print(
-                        f"[ACTION BLOCKED] target={entity_id} "
-                        f"trend={temporal['trend']} "
-                        f"persistence={temporal['persistence']} "
-                        f"volatility={temporal['volatility']}"
-                    )
-                    
-        # -------- Phase 4: Recovery (minimal, no print changes) --------
-    entity_state = snapshot.entities.get(entity_id)
-
-    if entity_state:
-        recovery_state = recovery_engine.evaluate_recovery(entity_state)
-
-        # apply risk decay
-        recovery_engine.decay_risk(entity_state)
-
-        # cooldown remaining
-        remaining = cooldown_manager.remaining(entity_state)
-
-        snapshot.update_entity(
-            entity_id=entity_id,
-            health=entity_state["health"],
-            risk=entity_state["risk"],
-            trend=entity_state["trend"],
-            persistence=entity_state["persistence"],
-            volatility=entity_state["volatility"],
-            recovery_state=recovery_state,
-            cooldown_remaining=remaining
-        )
-
-    risk_before = max(d["risk_score"] for d in entity_health.values())
-    memory.record_risk_snapshot(risk_before)
-    trend = memory.get_risk_trend()
-    
-    snapshot.update_system(
-        risk=risk_before,
-        mode="initial"
-    )
-    
-    # live system risk update
-    system_risk = max(e["risk"] for e in snapshot.entities.values())
-    snapshot.system["risk"] = system_risk
-
-
-
-    print("\n=== Risk Trend ===")
-    print(trend)
-
     policy_engine = PolicyEngine()
-    learned_policy = policy_engine.prefer_learned_policy(memory, trend)
 
-    if learned_policy:
-        policy = policy_engine.get_policy()
-        policy["response_level"] = learned_policy
-    else:
-        policy = policy_engine.adapt_with_cognition(thought, memory)
-        memory.record_policy_application(policy["response_level"])
-
-    print("\n=== Adaptive Policy ===")
-    print(policy)
-
-    apply_policy_effect(policy["response_level"])
-
-    ingest_synthetic_telemetry()
-    signals_after = normalizer.normalize(window_size=20)
-    entity_health_after = analyzer.analyze(signals_after)
-
-    risk_after = max(d["risk_score"] for d in entity_health_after.values())
-    memory.record_policy_outcome(
-        policy=policy,
-        risk_before=risk_before,
-        risk_after=risk_after,
-    )
-
-    print("\n=== Learning Outcome ===")
-    print(f"Risk before: {risk_before}")
-    print(f"Risk after: {risk_after}")
-    print(f"Improvement: {round(risk_before - risk_after, 3)}")
-
-    new_level = policy_engine.recover_policy(policy, trend)
-    if new_level != policy["response_level"]:
-        policy["response_level"] = new_level
-
-    print("\n=== Self-Tuning System Parameters Loop Started ===\n")
+    # NEW ENGINES
+    dependency_graph = DependencyGraph()
+    root_cause_engine = RootCauseEngine(dependency_graph)
+    failure_predictor = FailurePredictor()
 
     state = SystemState()
-    
+
+    ingest_synthetic_telemetry()
+
     set_snapshot(snapshot)
     api_thread = threading.Thread(target=start_api, daemon=True)
     api_thread.start()
 
+    print("\n=== Self-Tuning System Loop Started ===\n")
+
     while True:
+
         telemetry = collect_telemetry()
         ingest_synthetic_telemetry()
 
         signals = normalizer.normalize(window_size=20)
         entity_health = analyzer.analyze(signals)
 
+        # -----------------------------
+        # ENTITY ANALYSIS
+        # -----------------------------
+
         for entity_id, data in entity_health.items():
+
             risk = data["risk_score"]
 
             temporal_memory.record(entity_id, risk)
             history = temporal_memory.get_history(entity_id)
             temporal = time_analyzer.analyze(history)
+
+            # -----------------------------
+            # FAILURE PREDICTION
+            # -----------------------------
+
+            prediction = failure_predictor.predict(history)
 
             snapshot.update_entity(
                 entity_id=entity_id,
@@ -279,18 +123,112 @@ def main():
                 risk=risk,
                 trend=temporal["trend"],
                 persistence=temporal["persistence"],
-                volatility=temporal["volatility"]
+                volatility=temporal["volatility"],
+                predicted_risk=prediction["risk_forecast"]
             )
 
+            # -----------------------------
+            # COGNITION
+            # -----------------------------
+
+            thought = cognition.reason_from_entity(data)
+
+            if thought["decision_hint"] == "lockdown":
+
+                action = Action(
+                    action_type=ActionType.LOCKDOWN,
+                    target=entity_id,
+                    reason=thought["explanation"],
+                    confidence=thought["confidence"]
+                )
+
+                allowed, changed = safety_guard.allow(action, temporal)
+                
+                if not allowed:
+                    print(f"[SAFETY] Action blocked for {entity_id} - trend={temporal['trend']}, persistence={temporal['persistence']}")
+                    continue
+                
+                now = time.time()
+                entity_state = snapshot.entities.get(entity_id, {})
+
+                cooldown_until = entity_state.get("cooldown_until")
+                last_action = entity_state.get("last_action")
+
+                # -----------------------------
+                # COOLDOWN CHECK
+                # -----------------------------
+                if cooldown_until and now < cooldown_until:
+
+                    print(f"[COOLDOWN] {entity_id} action suppressed")
+
+                    snapshot.update_entity(
+                        entity_id=entity_id,
+                        action_status="COOLDOWN"
+                    )
+
+                    continue
+
+                # -----------------------------
+                # PREVENT SAME ACTION LOOP
+                # -----------------------------
+                if last_action == action.action_type.value:
+
+                    print(f"[SKIP] {entity_id} already in {last_action}")
+
+                    continue
+
+                # -----------------------------
+                # EXECUTE ACTION
+                # -----------------------------
+                executor.execute(action)
+
+                snapshot.update_entity(
+                    entity_id=entity_id,
+                    last_action=action.action_type.value,
+                    action_status="EXECUTED",
+                    last_action_time=now,
+                    cooldown_until=now + ACTION_COOLDOWN_SECONDS
+                )
+        # -----------------------------
+        # ROOT CAUSE ANALYSIS
+        # -----------------------------
+
+        root_cause = root_cause_engine.find_root_cause(entity_health)
+
+        if root_cause:
+            print(f"\n[ROOT CAUSE DETECTED] → {root_cause}")
+
+        # -----------------------------
+        # SYSTEM RISK
+        # -----------------------------
+
+        system_risk = max(
+            (e["risk"] for e in snapshot.entities.values()),
+            default=0
+        )
+
+        snapshot.update_system(
+            risk=system_risk,
+            mode="initial"
+        )
+
+        # -----------------------------
+        # POLICY ADAPTATION
+        # -----------------------------
+
         if should_adapt(state):
+
             prev = (state.timeout_ms, state.retry_limit, state.mode)
+
             state = adapt_parameters(state)
+
             curr = (state.timeout_ms, state.retry_limit, state.mode)
 
             if prev != curr:
                 log_adaptation(state)
 
         time.sleep(2)
+
 
 if __name__ == "__main__":
     main()

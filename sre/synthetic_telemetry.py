@@ -1,10 +1,22 @@
 import random
 from datetime import datetime, timedelta
+import psutil
+
 from models.event import Event
+
+
+# --------------------------------------------------
+# TELEMETRY MODE
+# --------------------------------------------------
+
+TELEMETRY_MODE = "synthetic"
+# options: "synthetic" or "real"
+
 
 # --------------------------------------------------
 # GLOBAL simulated system state (Actuator effects)
 # --------------------------------------------------
+
 SYSTEM_STATE = {
     "cpu_modifier": 1.0,
     "memory_modifier": 1.0,
@@ -16,6 +28,7 @@ def apply_policy_effect(policy_level: str):
     """
     Simulate effect of policy on system state.
     """
+
     if policy_level == "lockdown":
         SYSTEM_STATE["cpu_modifier"] = 0.5
         SYSTEM_STATE["memory_modifier"] = 0.6
@@ -30,6 +43,10 @@ def apply_policy_effect(policy_level: str):
         SYSTEM_STATE["disk_modifier"] = 1.0
 
 
+# --------------------------------------------------
+# SYNTHETIC TELEMETRY GENERATOR
+# --------------------------------------------------
+
 class SyntheticTelemetryGenerator:
     """
     Generates realistic SRE telemetry as time-series data.
@@ -38,9 +55,6 @@ class SyntheticTelemetryGenerator:
     def __init__(self, seed: int = 42):
         random.seed(seed)
 
-    # --------------------------------------------------
-    # PUBLIC API
-    # --------------------------------------------------
     def generate_series(
         self,
         entity_id: str,
@@ -49,14 +63,9 @@ class SyntheticTelemetryGenerator:
         pattern: str,
         interval_seconds: int = 1
     ):
-        """
-        Generates telemetry events for multiple metrics.
-        Returns a list of Event objects.
-        """
 
         metrics = ["cpu_usage", "memory_usage", "disk_usage"]
 
-        # Initial values (apply actuator modifiers here)
         cpu = random.uniform(85, 98) * SYSTEM_STATE["cpu_modifier"]
         memory = random.uniform(80, 95) * SYSTEM_STATE["memory_modifier"]
         disk = random.uniform(70, 95) * SYSTEM_STATE["disk_modifier"]
@@ -71,9 +80,14 @@ class SyntheticTelemetryGenerator:
         events = []
 
         for step in range(duration):
+
             for metric in metrics:
+
                 current[metric] = self._next_value(
-                    metric, current[metric], pattern, step
+                    metric,
+                    current[metric],
+                    pattern,
+                    step
                 )
 
                 events.append(
@@ -83,7 +97,7 @@ class SyntheticTelemetryGenerator:
                         metric=metric,
                         value=current[metric],
                         unit="%",
-                        timestamp=timestamp,
+                        timestamp=timestamp
                     )
                 )
 
@@ -92,9 +106,11 @@ class SyntheticTelemetryGenerator:
         return events
 
     # --------------------------------------------------
-    # VALUE EVOLUTION
+    # PATTERN ENGINE
     # --------------------------------------------------
+
     def _next_value(self, metric, value, pattern, step):
+
         if pattern == "healthy":
             return self._healthy(value)
 
@@ -109,51 +125,73 @@ class SyntheticTelemetryGenerator:
 
         return self._healthy(value)
 
-    # --------------------------------------------------
-    # PATTERNS
-    # --------------------------------------------------
     def _healthy(self, value):
         return max(0, min(100, value + random.uniform(-1.5, 1.5)))
 
     def _cpu_spike(self, value, step):
+
         if step < 10:
             return min(100, value + random.uniform(5, 10))
+
         return max(10, value - random.uniform(8, 15))
 
     def _memory_leak(self, value):
         return min(100, value + random.uniform(0.5, 1.2))
 
     def _cascade(self, value, step):
+
         if step < 8:
             return min(100, value + random.uniform(2, 4))
+
         return min(100, value + random.uniform(6, 12))
-# --------------------------------------------------
-# SIMPLE TELEMETRY API FOR SYSTEM LOOPS
-# --------------------------------------------------
+
 
 _generator = SyntheticTelemetryGenerator()
 
 
-def generate_telemetry():
+# --------------------------------------------------
+# REAL TELEMETRY MODE
+# --------------------------------------------------
+
+def get_real_metrics():
+
+    cpu = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory().percent
+    disk = psutil.disk_usage('/').percent
+
+    return {
+        "avg_latency": cpu * 2,
+        "failure_rate": max(0, (cpu - 80) / 20),
+        "success_rate": 1 - max(0, (cpu - 80) / 20)
+    }
+
+
+# --------------------------------------------------
+# TELEMETRY API
+# --------------------------------------------------
+
+def generate_telemetry(pattern="healthy"):
     """
-    Lightweight telemetry snapshot for self-tuning loop.
-    Returns aggregated metrics compatible with extract_metrics().
+    Unified telemetry interface.
     """
+
+    if TELEMETRY_MODE == "real":
+        return get_real_metrics()
+
+    # Synthetic mode
     events = _generator.generate_series(
         entity_id="system",
         entity_type="node",
         duration=1,
-        pattern="healthy"
+        pattern=pattern
     )
 
-    # Aggregate last values
     cpu = next(e.value for e in reversed(events) if e.metric == "cpu_usage")
     memory = next(e.value for e in reversed(events) if e.metric == "memory_usage")
     disk = next(e.value for e in reversed(events) if e.metric == "disk_usage")
 
-    # Map to adaptive-system metrics
     return {
-        "avg_latency": cpu * 2,          # synthetic latency proxy
+        "avg_latency": cpu * 2,
         "failure_rate": max(0, (cpu - 80) / 20),
         "success_rate": 1 - max(0, (cpu - 80) / 20)
     }
