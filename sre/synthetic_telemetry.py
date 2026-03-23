@@ -9,8 +9,7 @@ from models.event import Event
 # TELEMETRY MODE
 # --------------------------------------------------
 
-TELEMETRY_MODE = "synthetic"
-# options: "synthetic" or "real"
+from config import TELEMETRY_MODE
 
 
 # --------------------------------------------------

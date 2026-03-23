@@ -1,3 +1,5 @@
+import threading
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models.state_snapshot import StateSnapshot
@@ -11,12 +13,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-snapshot: StateSnapshot = None
+# ----------------------------------------------------------
+# Thread-safe shared state
+# Main loop writes, API reads — lock prevents partial reads
+# ----------------------------------------------------------
+_snapshot: StateSnapshot = None
+_lock: threading.Lock = threading.Lock()
 
 
-def set_snapshot(s: StateSnapshot):
-    global snapshot
-    snapshot = s
+def set_snapshot(s: StateSnapshot, lock: threading.Lock):
+    global _snapshot, _lock
+    _snapshot = s
+    _lock = lock
 
 
 @app.get("/health")
@@ -26,6 +34,26 @@ def health():
 
 @app.get("/state")
 def get_state():
-    if snapshot is None:
-        return {"error": "snapshot not ready"}
-    return snapshot.to_dict()
+    with _lock:
+        if _snapshot is None:
+            return {"error": "snapshot not ready"}
+        return _snapshot.to_dict()
+
+
+@app.get("/entities")
+def get_entities():
+    with _lock:
+        if _snapshot is None:
+            return {"error": "snapshot not ready"}
+        return _snapshot.entities
+
+
+@app.get("/entities/{entity_id}")
+def get_entity(entity_id: str):
+    with _lock:
+        if _snapshot is None:
+            return {"error": "snapshot not ready"}
+        entity = _snapshot.entities.get(entity_id)
+        if entity is None:
+            return {"error": f"entity '{entity_id}' not found"}
+        return entity

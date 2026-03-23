@@ -1,4 +1,5 @@
 import time
+from config import SIMULATION_MODE
 
 from sre.synthetic_telemetry import apply_policy_effect
 
@@ -6,12 +7,15 @@ from sre.synthetic_telemetry import apply_policy_effect
 class ActionExecutor:
 
     def execute(self, action):
+        
+        mode_tag = "[SIMULATED]" if SIMULATION_MODE else "[LIVE]"
 
         print(
-            f"\n[ACTION EXECUTION]\n"
+            f"\n[ACTION EXECUTION] {mode_tag}\n"
             f" type={action.action_type.value}\n"
             f" target={action.target}\n"
-            f" confidence={action.confidence}"
+            f" confidence={action.confidence:.2f}\n"
+            f" reason={action.reason}"
         )
 
         action_type = action.action_type.value
@@ -87,11 +91,8 @@ class ActionExecutor:
         return True
 
     def _lockdown(self, target):
-
-        print(f"[EXECUTOR] Lockdown initiated for: {target}")
-
+        print(f"[EXECUTOR] {'Would initiate' if SIMULATION_MODE else 'Initiating'} lockdown for: {target}")
+        apply_policy_effect("lockdown")
         time.sleep(1)
-
-        print("[EXECUTOR] Service isolated / traffic blocked")
-
+        print("[EXECUTOR] Lockdown complete — service isolated.")
         return True

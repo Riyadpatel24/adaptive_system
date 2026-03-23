@@ -36,8 +36,11 @@ from models.state_snapshot import StateSnapshot
 from logger.event_logger import log_adaptation
 from api.server import set_snapshot
 
+from config import CHAOS_ENABLED, CHAOS_INTERVAL_SECONDS, ACTION_COOLDOWN_SECONDS
 
-ACTION_COOLDOWN_SECONDS = 30
+if CHAOS_ENABLED:
+    from chaos.fault_injector import cpu_spike, memory_leak
+    import random
 
 
 def start_api():
@@ -51,6 +54,18 @@ def start_api():
 
 def collect_telemetry():
     return generate_telemetry()
+
+def maybe_inject_chaos(cycle: int):
+    if not CHAOS_ENABLED:
+        return
+    if cycle % CHAOS_INTERVAL_SECONDS != 0:
+        return
+    fault = random.choice(["cpu_spike", "memory_leak"])
+    print(f"\n[CHAOS] Injecting fault: {fault}")
+    if fault == "cpu_spike":
+        cpu_spike(duration=5)
+    else:
+        memory_leak(duration=5)
 
 
 def main():
@@ -85,14 +100,20 @@ def main():
 
     ingest_synthetic_telemetry()
 
-    set_snapshot(snapshot)
+    snapshot_lock = threading.Lock()
+    set_snapshot(snapshot, snapshot_lock)
     api_thread = threading.Thread(target=start_api, daemon=True)
     api_thread.start()
 
     print("\n=== Self-Tuning System Loop Started ===\n")
+    
+    cycle = 0
 
     while True:
-
+        
+        cycle += 1
+        maybe_inject_chaos(cycle)
+    
         telemetry = collect_telemetry()
         ingest_synthetic_telemetry()
 
