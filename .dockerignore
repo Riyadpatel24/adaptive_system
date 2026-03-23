@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+*.pyo
+.git
+.vscode
+.DS_Store
+storage/events.db
+storage/memory.json
+*.7z
+*.zip
