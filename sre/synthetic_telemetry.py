@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timedelta
 import psutil
+import time
 
 from models.event import Event
 
@@ -152,18 +153,71 @@ _generator = SyntheticTelemetryGenerator()
 # REAL TELEMETRY MODE
 # --------------------------------------------------
 
+import urllib.request
+import json as _json
+
+def _get_server_metrics():
+    """Poll the local Flask target server for real metrics."""
+    try:
+        start = time.time()
+        with urllib.request.urlopen("http://localhost:5000/metrics", timeout=2) as r:
+            latency = (time.time() - start) * 1000
+            data = _json.loads(r.read())
+            return {
+                "latency_ms": round(latency, 2),
+                "error_rate": data.get("error_rate", 0),
+                "reachable": True
+            }
+    except Exception:
+        return {
+            "latency_ms": 9999,
+            "error_rate": 1.0,
+            "reachable": False
+        }
+
+
+def _get_process_metrics():
+    """Get real metrics for top CPU-consuming processes."""
+    entities = {}
+
+    # Top 5 processes by CPU
+    procs = []
+    for p in psutil.process_iter(["pid", "name", "cpu_percent", "memory_percent"]):
+        try:
+            procs.append(p.info)
+        except Exception:
+            pass
+
+    procs = sorted(procs, key=lambda x: x["cpu_percent"] or 0, reverse=True)[:5]
+
+    for p in procs:
+        name = p["name"].replace(".exe", "").lower()
+        entities[f"proc-{name}"] = {
+            "cpu": min(100, p["cpu_percent"] or 0),
+            "memory": min(100, p["memory_percent"] or 0),
+            "disk": psutil.disk_usage("/").percent
+        }
+
+    return entities
+
+
 def get_real_metrics():
+    """
+    Returns real telemetry from:
+    - Top CPU processes on this machine
+    - Local Flask server at localhost:5000
+    """
+    server = _get_server_metrics()
+    processes = _get_process_metrics()
 
-    cpu = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory().percent
-    disk = psutil.disk_usage('/').percent
-
-    return {
-        "avg_latency": cpu * 2,
-        "failure_rate": max(0, (cpu - 80) / 20),
-        "success_rate": 1 - max(0, (cpu - 80) / 20)
+    # Add Flask server as a monitored entity
+    processes["flask-server"] = {
+        "cpu": min(100, server["latency_ms"] / 30),  # latency → cpu proxy
+        "memory": server["error_rate"] * 100,
+        "disk": 0 if server["reachable"] else 100
     }
 
+    return processes
 
 # --------------------------------------------------
 # TELEMETRY API

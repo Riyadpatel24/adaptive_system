@@ -34,9 +34,6 @@ class TelemetryNormalizer:
 
         return signals
 
-    # --------------------------------------------------
-    # Internal helpers
-    # --------------------------------------------------
     def _load_recent_telemetry(self, window_size):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -51,7 +48,6 @@ class TelemetryNormalizer:
         rows = cursor.fetchall()
         conn.close()
 
-        data = defaultdict(list)
         structured = defaultdict(lambda: defaultdict(list))
 
         for entity_id, metric, value in rows:
@@ -63,24 +59,27 @@ class TelemetryNormalizer:
         avg = mean(values)
         trend = values[0] - values[-1] if len(values) > 1 else 0
 
-        # CPU
         if metric == "cpu_usage":
-            if avg > 90:
-                return self._signal(-0.9, "cpu_usage sustained above 90%", 0.9)
-            if avg > 80:
-                return self._signal(-0.6, "cpu_usage sustained above 80%", 0.7)
+            if avg > 50:
+                return self._signal(-0.9, "cpu_usage sustained above 50%", 0.9)
+            if avg > 20:
+                return self._signal(-0.6, "cpu_usage sustained above 20%", 0.7)
+            if avg > 5:
+                return self._signal(-0.3, "cpu_usage above 5%", 0.5)
 
-        # MEMORY
         if metric == "memory_usage":
-            if trend > 5:
-                return self._signal(-0.7, "memory usage increasing rapidly", 0.8)
-            if avg > 85:
-                return self._signal(-0.8, "memory usage critically high", 0.9)
+            if trend > 2:
+                return self._signal(-0.7, "memory usage increasing", 0.8)
+            if avg > 50:
+                return self._signal(-0.8, "memory usage above 50%", 0.9)
+            if avg > 20:
+                return self._signal(-0.4, "memory usage above 20%", 0.6)
 
-        # DISK
         if metric == "disk_usage":
-            if avg > 90:
-                return self._signal(-0.85, "disk usage above 90%", 0.85)
+            if avg > 70:
+                return self._signal(-0.85, "disk usage above 70%", 0.85)
+            if avg > 40:
+                return self._signal(-0.4, "disk usage above 40%", 0.6)
 
         return None
 
