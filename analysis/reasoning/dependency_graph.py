@@ -1,12 +1,11 @@
 class DependencyGraph:
-
+    
     def __init__(self):
-
         self.graph = {
-            "api_service": ["auth_service", "database"],
-            "auth_service": ["database"],
-            "database": ["disk"],
-            "cache": ["memory"]
+            "flask-server": ["proc-python3", "proc-python"],
+            "proc-python3": ["proc-python"],
+            "proc-python": [],
+            "system": [],
         }
 
     def get_dependencies(self, service):

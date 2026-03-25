@@ -10,7 +10,7 @@ MEMORY_PATH = os.getenv("MEMORY_PATH", "storage/memory.json")
 # TELEMETRY
 # options: "synthetic" | "real"
 # ----------------------------------------------------------
-TELEMETRY_MODE = os.getenv("TELEMETRY_MODE", "real")
+TELEMETRY_MODE = os.getenv("TELEMETRY_MODE", "synthetic")
 
 # ----------------------------------------------------------
 # SIMULATION MODE

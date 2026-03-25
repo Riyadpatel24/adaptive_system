@@ -5,7 +5,7 @@ from models.event import Event
 from datetime import datetime
 
 
-def ingest_synthetic_telemetry():
+def ingest_synthetic_telemetry(telemetry=None):
     """
     Ingests telemetry and persists it via EventLogger.
     Mode is controlled by TELEMETRY_MODE in config.py:
@@ -16,7 +16,7 @@ def ingest_synthetic_telemetry():
     logger = EventLogger()
 
     if TELEMETRY_MODE == "real":
-        _ingest_real(logger)
+        _ingest_real(logger, telemetry)
     else:
         _ingest_synthetic(logger)
 
@@ -45,10 +45,10 @@ def _ingest_synthetic(logger):
             logger.log_event(event)
 
 
-def _ingest_real(logger):
-    """Read real process + server metrics and log as events."""
-
-    metrics = get_real_metrics()
+def _ingest_real(logger, metrics=None):
+    if metrics is None:
+        metrics = get_real_metrics()
+        
     now = datetime.utcnow()
 
     metric_map = {

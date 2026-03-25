@@ -1,20 +1,18 @@
 import random
+import threading
+import urllib.request
+import json as _json
 from datetime import datetime, timedelta
+
 import psutil
 import time
 
 from models.event import Event
-
-
-# --------------------------------------------------
-# TELEMETRY MODE
-# --------------------------------------------------
-
 from config import TELEMETRY_MODE
 
 
 # --------------------------------------------------
-# GLOBAL simulated system state (Actuator effects)
+# GLOBAL SIMULATED SYSTEM STATE (Actuator effects)
 # --------------------------------------------------
 
 SYSTEM_STATE = {
@@ -23,24 +21,27 @@ SYSTEM_STATE = {
     "disk_modifier": 1.0
 }
 
+_state_lock = threading.Lock()
+
 
 def apply_policy_effect(policy_level: str):
     """
     Simulate effect of policy on system state.
+    Thread-safe: called from main loop and FastAPI thread.
     """
+    with _state_lock:
+        if policy_level == "lockdown":
+            SYSTEM_STATE["cpu_modifier"] = 0.5
+            SYSTEM_STATE["memory_modifier"] = 0.6
+            SYSTEM_STATE["disk_modifier"] = 0.7
 
-    if policy_level == "lockdown":
-        SYSTEM_STATE["cpu_modifier"] = 0.5
-        SYSTEM_STATE["memory_modifier"] = 0.6
-        SYSTEM_STATE["disk_modifier"] = 0.7
+        elif policy_level == "strict":
+            SYSTEM_STATE["memory_modifier"] = 0.7
 
-    elif policy_level == "strict":
-        SYSTEM_STATE["memory_modifier"] = 0.7
-
-    elif policy_level == "normal":
-        SYSTEM_STATE["cpu_modifier"] = 1.0
-        SYSTEM_STATE["memory_modifier"] = 1.0
-        SYSTEM_STATE["disk_modifier"] = 1.0
+        elif policy_level == "normal":
+            SYSTEM_STATE["cpu_modifier"] = 1.0
+            SYSTEM_STATE["memory_modifier"] = 1.0
+            SYSTEM_STATE["disk_modifier"] = 1.0
 
 
 # --------------------------------------------------
@@ -63,12 +64,13 @@ class SyntheticTelemetryGenerator:
         pattern: str,
         interval_seconds: int = 1
     ):
-
         metrics = ["cpu_usage", "memory_usage", "disk_usage"]
 
-        cpu = random.uniform(85, 98) * SYSTEM_STATE["cpu_modifier"]
-        memory = random.uniform(80, 95) * SYSTEM_STATE["memory_modifier"]
-        disk = random.uniform(70, 95) * SYSTEM_STATE["disk_modifier"]
+        # FIX 7: lock reads of SYSTEM_STATE for thread safety
+        with _state_lock:
+            cpu = random.uniform(85, 98) * SYSTEM_STATE["cpu_modifier"]
+            memory = random.uniform(80, 95) * SYSTEM_STATE["memory_modifier"]
+            disk = random.uniform(70, 95) * SYSTEM_STATE["disk_modifier"]
 
         current = {
             "cpu_usage": cpu,
@@ -129,20 +131,16 @@ class SyntheticTelemetryGenerator:
         return max(0, min(100, value + random.uniform(-1.5, 1.5)))
 
     def _cpu_spike(self, value, step):
-
         if step < 10:
             return min(100, value + random.uniform(5, 10))
-
         return max(10, value - random.uniform(8, 15))
 
     def _memory_leak(self, value):
         return min(100, value + random.uniform(0.5, 1.2))
 
     def _cascade(self, value, step):
-
         if step < 8:
             return min(100, value + random.uniform(2, 4))
-
         return min(100, value + random.uniform(6, 12))
 
 
@@ -152,9 +150,6 @@ _generator = SyntheticTelemetryGenerator()
 # --------------------------------------------------
 # REAL TELEMETRY MODE
 # --------------------------------------------------
-
-import urllib.request
-import json as _json
 
 def _get_server_metrics():
     """Poll the local Flask target server for real metrics."""
@@ -180,7 +175,6 @@ def _get_process_metrics():
     """Get real metrics for top CPU-consuming processes."""
     entities = {}
 
-    # Top 5 processes by CPU
     procs = []
     for p in psutil.process_iter(["pid", "name", "cpu_percent", "memory_percent"]):
         try:
@@ -210,7 +204,6 @@ def get_real_metrics():
     server = _get_server_metrics()
     processes = _get_process_metrics()
 
-    # Add Flask server as a monitored entity
     processes["flask-server"] = {
         "cpu": min(100, server["latency_ms"] / 30),  # latency → cpu proxy
         "memory": server["error_rate"] * 100,
@@ -218,6 +211,7 @@ def get_real_metrics():
     }
 
     return processes
+
 
 # --------------------------------------------------
 # TELEMETRY API

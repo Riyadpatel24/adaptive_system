@@ -55,6 +55,7 @@ def start_api():
 def collect_telemetry():
     return generate_telemetry()
 
+
 def maybe_inject_chaos(cycle: int):
     if not CHAOS_ENABLED:
         return
@@ -91,7 +92,6 @@ def main():
     cognition = CognitionEngine(memory)
     policy_engine = PolicyEngine()
 
-    # NEW ENGINES
     dependency_graph = DependencyGraph()
     root_cause_engine = RootCauseEngine(dependency_graph)
     failure_predictor = FailurePredictor()
@@ -106,16 +106,17 @@ def main():
     api_thread.start()
 
     print("\n=== Self-Tuning System Loop Started ===\n")
-    
+
     cycle = 0
 
     while True:
-        
+
         cycle += 1
         maybe_inject_chaos(cycle)
-    
+
+        # FIX 4A: collect once, pass into ingestion (no double-sampling)
         telemetry = collect_telemetry()
-        ingest_synthetic_telemetry()
+        ingest_synthetic_telemetry(telemetry)
 
         signals = normalizer.normalize(window_size=20)
         entity_health = analyzer.analyze(signals)
@@ -154,62 +155,73 @@ def main():
 
             thought = cognition.reason_from_entity(data)
 
+            # FIX 4B: wire up all action types, not just lockdown
             if thought["decision_hint"] == "lockdown":
-
                 action = Action(
                     action_type=ActionType.LOCKDOWN,
                     target=entity_id,
                     reason=thought["explanation"],
                     confidence=thought["confidence"]
                 )
+            elif thought["decision_hint"] == "strict_mode":
+                action = Action(
+                    action_type=ActionType.THROTTLE_NODE,
+                    target=entity_id,
+                    reason=thought["explanation"],
+                    confidence=thought["confidence"]
+                )
+            else:
+                continue
 
-                allowed, changed = safety_guard.allow(action, temporal)
-                
-                if not allowed:
-                    print(f"[SAFETY] Action blocked for {entity_id} - trend={temporal['trend']}, persistence={temporal['persistence']}")
-                    continue
-                
-                now = time.time()
-                entity_state = snapshot.entities.get(entity_id, {})
+            # FIX 5: safety guard returns single bool, not tuple
+            allowed = safety_guard.allow(action, temporal)
 
-                cooldown_until = entity_state.get("cooldown_until")
-                last_action = entity_state.get("last_action")
+            if not allowed:
+                print(f"[SAFETY] Action blocked for {entity_id} - trend={temporal['trend']}, persistence={temporal['persistence']}")
+                continue
 
-                # -----------------------------
-                # COOLDOWN CHECK
-                # -----------------------------
-                if cooldown_until and now < cooldown_until:
+            now = time.time()
+            entity_state = snapshot.entities.get(entity_id, {})
 
-                    print(f"[COOLDOWN] {entity_id} action suppressed")
+            cooldown_until = entity_state.get("cooldown_until")
+            last_action = entity_state.get("last_action")
 
-                    snapshot.update_entity(
-                        entity_id=entity_id,
-                        action_status="COOLDOWN"
-                    )
+            # -----------------------------
+            # COOLDOWN CHECK
+            # -----------------------------
+            if cooldown_until and now < cooldown_until:
 
-                    continue
-
-                # -----------------------------
-                # PREVENT SAME ACTION LOOP
-                # -----------------------------
-                if last_action == action.action_type.value:
-
-                    print(f"[SKIP] {entity_id} already in {last_action}")
-
-                    continue
-
-                # -----------------------------
-                # EXECUTE ACTION
-                # -----------------------------
-                executor.execute(action)
+                print(f"[COOLDOWN] {entity_id} action suppressed")
 
                 snapshot.update_entity(
                     entity_id=entity_id,
-                    last_action=action.action_type.value,
-                    action_status="EXECUTED",
-                    last_action_time=now,
-                    cooldown_until=now + ACTION_COOLDOWN_SECONDS
+                    action_status="COOLDOWN"
                 )
+
+                continue
+
+            # -----------------------------
+            # PREVENT SAME ACTION LOOP
+            # -----------------------------
+            if last_action == action.action_type.value:
+
+                print(f"[SKIP] {entity_id} already in {last_action}")
+
+                continue
+
+            # -----------------------------
+            # EXECUTE ACTION
+            # -----------------------------
+            executor.execute(action)
+
+            snapshot.update_entity(
+                entity_id=entity_id,
+                last_action=action.action_type.value,
+                action_status="EXECUTED",
+                last_action_time=now,
+                cooldown_until=now + ACTION_COOLDOWN_SECONDS
+            )
+
         # -----------------------------
         # ROOT CAUSE ANALYSIS
         # -----------------------------
@@ -235,7 +247,15 @@ def main():
 
         # -----------------------------
         # POLICY ADAPTATION
+        # FIX 4C: feed real metrics into SystemState so adapt_parameters works
         # -----------------------------
+
+        if entity_health:
+            all_risks = [d["risk_score"] for d in entity_health.values()]
+            critical_count = sum(1 for d in entity_health.values() if d["state"] == "CRITICAL")
+            state.failure_rate = critical_count / len(entity_health)
+            state.success_rate = 1.0 - state.failure_rate
+            state.avg_response_time = max(all_risks) * 1000  # risk → ms proxy
 
         if should_adapt(state):
 

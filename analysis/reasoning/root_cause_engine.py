@@ -19,7 +19,7 @@ class RootCauseEngine:
 
             for dep in deps:
 
-                if dep in entity_health and entity_health[dep]["state"] == "critical":
+                if dep in entity_health and entity_health[dep]["state"] == "CRITICAL":
                     return dep
 
         return failing_services[0]
