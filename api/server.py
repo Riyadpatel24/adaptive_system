@@ -9,7 +9,7 @@ app = FastAPI(title="Adaptive System API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -57,3 +57,23 @@ def get_entity(entity_id: str):
         if entity is None:
             return {"error": f"entity '{entity_id}' not found"}
         return entity
+
+
+@app.post("/chaos/cpu")
+def trigger_cpu_spike():
+    from config import CHAOS_ENABLED
+    if not CHAOS_ENABLED:
+        return {"error": "Chaos disabled. Set CHAOS_ENABLED=true in config.py"}
+    from chaos.fault_injector import cpu_spike
+    cpu_spike(duration=10)
+    return {"status": "cpu spike triggered", "duration": 10}
+
+
+@app.post("/chaos/memory")
+def trigger_memory_leak():
+    from config import CHAOS_ENABLED
+    if not CHAOS_ENABLED:
+        return {"error": "Chaos disabled. Set CHAOS_ENABLED=true in config.py"}
+    from chaos.fault_injector import memory_leak
+    memory_leak(duration=10)
+    return {"status": "memory leak triggered", "duration": 10}

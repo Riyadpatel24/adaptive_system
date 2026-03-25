@@ -42,7 +42,6 @@ body {
   font-size: 13px;
 }
 
-/* ── NOISE TEXTURE ── */
 body::after {
   content: '';
   position: fixed; inset: 0;
@@ -51,7 +50,6 @@ body::after {
   z-index: 9998;
 }
 
-/* ── SCANLINES ── */
 body::before {
   content: '';
   position: fixed; inset: 0;
@@ -60,7 +58,7 @@ body::before {
   z-index: 9997;
 }
 
-/* ─── SIDEBAR ──────────────────────────── */
+/* ─── SIDEBAR ─── */
 .sidebar {
   width: 72px;
   background: var(--surface);
@@ -80,20 +78,10 @@ body::before {
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid var(--border);
-  position: relative;
   flex-shrink: 0;
 }
 
-.logo-hex {
-  width: 30px; height: 30px;
-  position: relative;
-}
-
-.logo-hex svg {
-  width: 100%; height: 100%;
-  color: var(--cyan);
-  filter: drop-shadow(0 0 6px var(--cyan));
-}
+.logo-hex svg { width: 30px; height: 30px; color: var(--cyan); filter: drop-shadow(0 0 6px var(--cyan)); }
 
 .nav {
   display: flex;
@@ -122,18 +110,11 @@ body::before {
   position: relative;
   margin: 0 8px;
   border-radius: 4px;
+  user-select: none;
 }
 
-.nav-item:hover {
-  color: var(--text);
-  background: var(--border2);
-}
-
-.nav-item.active {
-  color: var(--cyan);
-  background: var(--cyan-dim);
-}
-
+.nav-item:hover { color: var(--text); background: var(--border2); }
+.nav-item.active { color: var(--cyan); background: var(--cyan-dim); }
 .nav-item.active::after {
   content: '';
   position: absolute;
@@ -144,7 +125,6 @@ body::before {
   box-shadow: 0 0 10px var(--cyan);
   border-radius: 2px 0 0 2px;
 }
-
 .nav-item svg { width: 16px; height: 16px; }
 
 .sidebar-footer {
@@ -157,13 +137,7 @@ body::before {
   border-top: 1px solid var(--border);
 }
 
-.live-dot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
+.live-dot { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .live-dot-inner {
   width: 7px; height: 7px;
   border-radius: 50%;
@@ -171,573 +145,324 @@ body::before {
   box-shadow: 0 0 10px var(--green);
   animation: livepulse 2.2s ease-in-out infinite;
 }
-
 @keyframes livepulse {
   0%,100% { box-shadow: 0 0 6px var(--green); opacity: 1; }
   50%      { box-shadow: 0 0 18px var(--green); opacity: .7; }
 }
+.live-label { font-family: var(--mono); font-size: 7px; letter-spacing: .1em; color: var(--green); text-transform: uppercase; }
 
-.live-label {
-  font-family: var(--mono);
-  font-size: 7px;
-  letter-spacing: .1em;
-  color: var(--green);
-  text-transform: uppercase;
-}
+/* ─── MAIN ─── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-/* ─── MAIN ──────────────────────────────── */
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ── TOPBAR ── */
 .topbar {
   height: 58px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   padding: 0 24px;
-  gap: 20px;
+  gap: 16px;
   flex-shrink: 0;
-  background: var(--surface);
-  position: relative;
 }
 
-.topbar::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 24px; right: 24px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-}
-
-.topbar-brand {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.topbar-name {
-  font-family: var(--head);
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  color: #fff;
-  text-transform: uppercase;
-}
-
-.topbar-name em {
-  font-style: normal;
-  color: var(--cyan);
-  text-shadow: 0 0 20px rgba(0,229,255,.4);
-}
-
-.topbar-ver {
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--text-mid);
-  border: 1px solid var(--border);
-  padding: 2px 7px;
-  border-radius: 20px;
-  letter-spacing: .05em;
-}
-
+.brand { font-family: var(--head); font-size: 15px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.brand span { color: var(--cyan); }
+.version { font-family: var(--mono); font-size: 10px; color: var(--text-mid); }
 .spacer { flex: 1; }
 
-.engine-pill {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--green);
-  background: var(--green-dim);
-  border: 1px solid rgba(0,255,179,.2);
-  padding: 6px 14px;
+.engine-badge {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px;
+  border: 1px solid rgba(0,255,179,.25);
   border-radius: 20px;
-  letter-spacing: .08em;
+  background: var(--green-dim);
+  font-family: var(--mono); font-size: 10px; color: var(--green);
+}
+.engine-badge::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 8px var(--green);
+  animation: livepulse 2s infinite;
 }
 
-.engine-pill .dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: livepulse 2.2s infinite;
+.clock { font-family: var(--mono); font-size: 13px; color: var(--text-mid); }
+
+/* ─── PANELS ─── */
+.panels { flex: 1; overflow: hidden; position: relative; }
+
+.panel { display: none; height: 100%; overflow-y: auto; padding: 20px; }
+.panel.active { display: block; }
+
+/* scrollbar */
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ─── DASH GRID ─── */
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
 }
+.stat-label { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 10px; }
+.stat-value { font-family: var(--head); font-size: 32px; font-weight: 800; line-height: 1; }
+.stat-value.red { color: var(--red); text-shadow: 0 0 20px rgba(255,56,96,.4); }
+.stat-value.amber { color: var(--amber); text-shadow: 0 0 20px rgba(255,171,0,.4); }
+.stat-value.cyan { color: var(--cyan); text-shadow: 0 0 20px rgba(0,229,255,.4); }
+.stat-value.green { color: var(--green); text-shadow: 0 0 20px rgba(0,255,179,.4); }
+.stat-sub { font-family: var(--mono); font-size: 9px; color: var(--text-mid); margin-top: 6px; text-transform: uppercase; letter-spacing: .08em; }
 
-.clock {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-mid);
-  letter-spacing: .08em;
-  min-width: 72px;
-  text-align: right;
-}
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 
-/* ─── CONTENT ───────────────────────────── */
-.content { flex: 1; overflow: hidden; display: flex; }
-.page { display: none; flex: 1; overflow-y: auto; padding: 22px 24px; flex-direction: column; gap: 16px; }
-.page.active { display: flex; }
-.page::-webkit-scrollbar { width: 3px; }
-.page::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-/* ── GRID ── */
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
-.g3c { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-
-/* ── CARD ── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 16px;
-  position: relative;
+  border-radius: 8px;
   overflow: hidden;
 }
-
-.card-glow {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 10%, var(--cyan) 50%, transparent 90%);
-  opacity: .25;
-}
-
-.card-glow.green { background: linear-gradient(90deg, transparent 10%, var(--green) 50%, transparent 90%); }
-.card-glow.amber { background: linear-gradient(90deg, transparent 10%, var(--amber) 50%, transparent 90%); }
-.card-glow.red   { background: linear-gradient(90deg, transparent 10%, var(--red) 50%, transparent 90%); opacity:.3; }
-
-.card-label {
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
   font-family: var(--mono);
   font-size: 9px;
-  font-weight: 500;
-  letter-spacing: .18em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--text-mid);
-  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
+.card-header span { color: var(--cyan); }
+.card-body { padding: 16px; }
 
-.card-label::after {
-  content: '';
-  flex: 1; height: 1px;
-  background: var(--border);
-}
+canvas { max-height: 180px; }
 
-/* ── METRIC ── */
-.metric-card { text-align: center; padding: 18px 16px; }
-
-.metric-num {
-  font-family: var(--mono);
-  font-size: 38px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--cyan);
-  text-shadow: 0 0 24px rgba(0,229,255,.35);
-  margin: 6px 0 4px;
-  transition: color .4s;
-}
-
-.metric-num.warn { color: var(--amber); text-shadow: 0 0 24px rgba(255,171,0,.35); }
-.metric-num.ok   { color: var(--green); text-shadow: 0 0 24px rgba(0,255,179,.35); }
-.metric-num.crit { color: var(--red);   text-shadow: 0 0 24px rgba(255,56,96,.35); }
-
-.metric-lbl { font-family: var(--mono); font-size: 9px; color: var(--text-mid); letter-spacing: .1em; text-transform: uppercase; }
-
-.track {
-  width: 100%;
-  height: 2px;
-  background: var(--border);
-  border-radius: 2px;
-  margin-top: 14px;
-  overflow: hidden;
-}
-
-.fill {
-  height: 100%;
-  border-radius: 2px;
-  background: var(--cyan);
-  box-shadow: 0 0 8px var(--cyan);
-  transition: width .9s cubic-bezier(.4,0,.2,1);
-}
-.fill.warn { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-.fill.ok   { background: var(--green); box-shadow: 0 0 8px var(--green); }
-.fill.crit { background: var(--red);   box-shadow: 0 0 8px var(--red); }
-
-/* ── CHART CARD ── */
-.chart-wrap { height: 170px; position: relative; }
-.chart-wrap canvas { position: absolute; inset: 0; }
-
-/* ── STATUS LIST ── */
-.status-list { display: flex; flex-direction: column; gap: 6px; }
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 4px;
-  font-family: var(--mono);
-  font-size: 11px;
-  transition: border-color .2s;
-}
-
-.status-row:hover { border-color: var(--border); }
-
-.dot-ind { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.dot-ind.g { background: var(--green); box-shadow: 0 0 6px var(--green); }
-.dot-ind.b { background: var(--cyan);  box-shadow: 0 0 6px var(--cyan); }
-.dot-ind.a { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
-
-.status-lbl { flex: 1; color: var(--text); }
-
-.pill {
-  font-size: 8px;
-  font-family: var(--mono);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-}
-
-.pill.active  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,179,.25); }
-.pill.running { background: var(--cyan-dim);  color: var(--cyan);  border: 1px solid rgba(0,229,255,.25); }
-.pill.standby { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,171,0,.25); }
-
-/* ── PROC TABLE ── */
-.tbl { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
-.tbl th {
-  text-align: left;
-  padding: 7px 12px;
-  font-size: 8px;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--text-mid);
+/* ─── ENTITY TABLE ─── */
+.entity-table { width: 100%; border-collapse: collapse; }
+.entity-table th {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text-mid);
+  padding: 8px 12px; text-align: left;
   border-bottom: 1px solid var(--border);
-  font-weight: 500;
 }
-.tbl td {
-  padding: 8px 12px;
+.entity-table td {
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border2);
-  color: var(--text);
-  vertical-align: middle;
+  font-family: var(--mono); font-size: 11px;
 }
-.tbl tbody tr:hover td { background: rgba(255,255,255,.015); }
-.tbl tbody tr:last-child td { border-bottom: none; }
+.entity-table tr:hover td { background: var(--border2); cursor: pointer; }
+.entity-table tr:last-child td { border-bottom: none; }
 
-.proc-name { display: flex; align-items: center; gap: 8px; }
-.proc-led  { width: 4px; height: 4px; border-radius: 50%; background: var(--cyan); flex-shrink: 0; }
-
-.mini-bar { width: 50px; height: 2px; background: var(--border); border-radius: 2px; display: inline-block; vertical-align: middle; margin-left: 8px; overflow: hidden; }
-.mini-fill { height: 100%; background: var(--cyan); border-radius: 2px; }
-.mini-fill.warn { background: var(--amber); }
-.mini-fill.ok   { background: var(--green); }
-.mini-fill.crit { background: var(--red); }
-
-/* ── SECTION TITLE ── */
-.sec-title {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--text-mid);
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ── LOG TERMINAL ── */
-.terminal {
-  background: #030608;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.8;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.terminal::-webkit-scrollbar { width: 3px; }
-.terminal::-webkit-scrollbar-thumb { background: var(--border); }
-
-.term-header {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  background: var(--surface2);
-}
-
-.term-dots { display: flex; gap: 5px; }
-.td { width: 9px; height: 9px; border-radius: 50%; }
-.td.r { background: #ff5f57; }
-.td.y { background: #febc2e; }
-.td.g { background: #28c840; }
-
-.term-file {
-  font-size: 10px;
-  color: var(--text-mid);
-  letter-spacing: .03em;
-}
-
-.term-body { padding: 12px 14px; flex: 1; overflow-y: auto; height: 320px; display: flex; flex-direction: column; gap: 1px; }
-.term-body::-webkit-scrollbar { width: 3px; }
-.term-body::-webkit-scrollbar-thumb { background: var(--border); }
-
-.log-row { display: flex; gap: 14px; }
-.log-t  { color: var(--text-low); flex-shrink: 0; }
-.log-lv { flex-shrink: 0; width: 46px; }
-.log-lv.info { color: var(--cyan); }
-.log-lv.ok   { color: var(--green); }
-.log-lv.warn { color: var(--amber); }
-.log-lv.err  { color: var(--red); }
-.log-m  { color: var(--text-mid); }
-.log-m span { color: var(--text); }
-
-.cursor {
+.badge {
   display: inline-block;
-  width: 6px; height: 11px;
-  background: var(--cyan);
-  margin-left: 2px;
-  vertical-align: middle;
-  border-radius: 1px;
-  animation: blink .9s step-end infinite;
-}
-@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-
-/* ── THREAT PAGE ── */
-.threat-banner {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  padding: 22px 26px;
-  border-radius: 6px;
-  border: 1px solid rgba(0,255,179,.18);
-  background: linear-gradient(135deg, var(--green-dim), transparent);
-  position: relative;
-  overflow: hidden;
-}
-
-.threat-banner::before {
-  content: '';
-  position: absolute;
-  top: -40px; right: -40px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: var(--green);
-  opacity: .04;
-  filter: blur(30px);
-}
-
-.threat-banner.medium {
-  border-color: rgba(255,171,0,.2);
-  background: linear-gradient(135deg, var(--amber-dim), transparent);
-}
-
-.threat-banner.critical {
-  border-color: rgba(255,56,96,.25);
-  background: linear-gradient(135deg, var(--red-dim), transparent);
-}
-
-.tb-tag {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .25em;
-  text-transform: uppercase;
-  color: var(--text-mid);
-}
-
-.tb-level {
-  font-family: var(--head);
-  font-size: 36px;
-  font-weight: 800;
-  letter-spacing: -.01em;
-  color: var(--green);
-  line-height: 1;
-  text-shadow: 0 0 30px rgba(0,255,179,.3);
-}
-
-.tb-level.medium   { color: var(--amber); text-shadow: 0 0 30px rgba(255,171,0,.3); }
-.tb-level.critical { color: var(--red);   text-shadow: 0 0 30px rgba(255,56,96,.3); }
-
-.tb-score-wrap { margin-left: auto; text-align: right; }
-.tb-score {
-  font-family: var(--mono);
-  font-size: 52px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--green);
-}
-.tb-score.medium   { color: var(--amber); }
-.tb-score.critical { color: var(--red); }
-.tb-denom { font-family: var(--mono); font-size: 11px; color: var(--text-mid); }
-
-.sev {
-  display: inline-block;
-  font-size: 8px;
-  font-family: var(--mono);
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
   padding: 2px 8px;
-  border-radius: 20px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.badge.critical { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,56,96,.3); }
+.badge.degraded { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,171,0,.3); }
+.badge.warning  { background: rgba(255,171,0,.08); color: #ffd066; border: 1px solid rgba(255,208,102,.2); }
+.badge.ok, .badge.healthy { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,179,.25); }
+.badge.cooldown { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,229,255,.25); }
+
+.risk-bar-wrap { width: 80px; height: 4px; background: var(--border); border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.risk-bar-fill { height: 100%; border-radius: 2px; transition: width .5s; }
+
+/* system status */
+.status-list { display: flex; flex-direction: column; gap: 10px; }
+.status-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.active  { background: var(--green); box-shadow: 0 0 8px var(--green); animation: livepulse 2s infinite; }
+.status-dot.running { background: var(--cyan);  box-shadow: 0 0 8px var(--cyan); }
+.status-dot.standby { background: var(--amber); }
+.status-name { flex: 1; font-family: var(--mono); font-size: 11px; }
+.status-tag {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 3px;
+}
+.status-tag.active  { background: var(--green-dim); color: var(--green); }
+.status-tag.running { background: var(--cyan-dim);  color: var(--cyan); }
+.status-tag.standby { background: var(--amber-dim); color: var(--amber); }
+
+/* ─── MONITOR PANEL ─── */
+.monitor-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.entity-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.entity-card:hover { border-color: var(--cyan); background: rgba(0,229,255,.03); }
+.entity-card.critical { border-color: rgba(255,56,96,.4); }
+.entity-card.degraded { border-color: rgba(255,171,0,.3); }
+.entity-name { font-family: var(--mono); font-size: 12px; font-weight: 700; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entity-risk-big { font-family: var(--head); font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+.entity-metrics { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.metric-row { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; color: var(--text-mid); }
+.metric-row .bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
+.metric-row .bar-fill { height: 100%; border-radius: 2px; transition: width .5s; }
+
+/* ─── DETAIL MODAL ─── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(4,8,15,.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 520px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.modal-title { font-family: var(--head); font-size: 16px; font-weight: 700; flex: 1; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-mid); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color .2s;
+}
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.modal-section { margin-bottom: 20px; }
+.modal-section-title { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 10px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.detail-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+.detail-item-label { font-family: var(--mono); font-size: 9px; color: var(--text-mid); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.detail-item-value { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+.signal-list { display: flex; flex-direction: column; gap: 6px; }
+.signal-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px;
+  font-family: var(--mono); font-size: 10px; color: var(--text-mid);
+  line-height: 1.5;
 }
 
-.sev.low  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,179,.3); }
-.sev.med  { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,171,0,.3); }
-.sev.high { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,56,96,.3); }
+/* ─── THREATS PANEL ─── */
+.threats-list { display: flex; flex-direction: column; gap: 8px; }
+.threat-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.threat-item.critical { border-color: rgba(255,56,96,.35); background: rgba(255,56,96,.03); }
+.threat-item.degraded { border-color: rgba(255,171,0,.3); background: rgba(255,171,0,.02); }
+.threat-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.threat-content { flex: 1; }
+.threat-title { font-family: var(--mono); font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+.threat-desc { font-size: 12px; color: var(--text-mid); line-height: 1.5; }
+.threat-time { font-family: var(--mono); font-size: 10px; color: var(--text-mid); white-space: nowrap; }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-mid); font-family: var(--mono); font-size: 12px; }
+.empty-state .icon { font-size: 32px; margin-bottom: 12px; }
 
-/* ── ACTIONS ── */
-.action-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-
-.act-btn {
+/* ─── ACTIONS PANEL ─── */
+.actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.action-log { display: flex; flex-direction: column; gap: 6px; }
+.action-item {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 6px;
+  padding: 10px 14px;
+  font-family: var(--mono); font-size: 11px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.action-item .tag { flex-shrink: 0; }
+.action-item .msg { color: var(--text-mid); flex: 1; line-height: 1.5; }
+.chaos-card {
+  background: var(--surface);
+  border: 1px solid rgba(255,56,96,.3);
+  border-radius: 8px;
   padding: 20px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  transition: all .2s;
-  position: relative;
-  overflow: hidden;
-  text-align: left;
 }
-
-.act-btn::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: transparent;
-  transition: background .2s, box-shadow .2s;
+.chaos-title { font-family: var(--head); font-size: 14px; font-weight: 700; color: var(--red); margin-bottom: 6px; }
+.chaos-desc { font-size: 12px; color: var(--text-mid); margin-bottom: 16px; line-height: 1.5; }
+.chaos-warning { font-family: var(--mono); font-size: 10px; color: var(--amber); margin-bottom: 16px; padding: 8px 12px; background: var(--amber-dim); border-radius: 4px; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  cursor: pointer; letter-spacing: .06em; text-transform: uppercase;
+  transition: opacity .2s, transform .1s;
 }
+.btn:active { transform: scale(.97); }
+.btn-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,56,96,.4); }
+.btn-red:hover { background: rgba(255,56,96,.2); }
+.btn-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,171,0,.4); }
+.btn-amber:hover { background: rgba(255,171,0,.2); }
+.btn-cyan { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,229,255,.3); }
+.btn-cyan:hover { background: rgba(0,229,255,.2); }
+.chaos-status { margin-top: 12px; font-family: var(--mono); font-size: 11px; min-height: 20px; }
+.chaos-status.ok { color: var(--green); }
+.chaos-status.err { color: var(--red); }
 
-.act-btn:hover { border-color: var(--cyan); background: var(--cyan-dim); }
-.act-btn:hover::before { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+/* ─── CONFIG PANEL ─── */
+.config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.config-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.config-card-title { font-family: var(--head); font-size: 13px; font-weight: 700; margin-bottom: 14px; color: var(--cyan); }
+.config-item { margin-bottom: 14px; }
+.config-label { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 5px; }
+.config-value { font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.config-value.on { color: var(--green); }
+.config-value.off { color: var(--text-mid); }
+.config-value.mode { color: var(--cyan); }
 
-.act-btn.red:hover  { border-color: var(--red);   background: var(--red-dim); }
-.act-btn.red:hover::before { background: var(--red); box-shadow: 0 0 10px var(--red); }
-
-.act-btn.grn:hover  { border-color: var(--green); background: var(--green-dim); }
-.act-btn.grn:hover::before { background: var(--green); box-shadow: 0 0 10px var(--green); }
-
-.act-ico {
-  width: 38px; height: 38px;
-  background: var(--cyan-dim);
-  border: 1px solid rgba(0,229,255,.2);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--cyan);
-}
-
-.act-ico svg { width: 16px; height: 16px; }
-.act-ico.red { background: var(--red-dim);   border-color: rgba(255,56,96,.2);   color: var(--red); }
-.act-ico.grn { background: var(--green-dim); border-color: rgba(0,255,179,.2);   color: var(--green); }
-
-.act-title {
-  font-family: var(--head);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -.01em;
-  text-transform: uppercase;
-}
-
-.act-desc { font-size: 11px; color: var(--text-mid); line-height: 1.5; }
-
-/* ── SETTINGS ── */
-.set-row {
-  display: flex;
-  align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border2);
-  gap: 16px;
-}
-.set-row:last-child { border-bottom: none; }
-
-.set-info { flex: 1; }
-.set-name { font-family: var(--head); font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
-.set-desc { font-size: 11px; color: var(--text-mid); margin-top: 2px; line-height: 1.4; }
-
-.toggle {
-  width: 38px; height: 21px;
-  background: var(--border);
-  border-radius: 20px;
-  cursor: pointer;
-  position: relative;
-  transition: background .25s, box-shadow .25s;
-  flex-shrink: 0;
-}
-
-.toggle.on {
-  background: var(--cyan);
-  box-shadow: 0 0 12px rgba(0,229,255,.25);
-}
-
-.toggle::after {
-  content: '';
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 15px; height: 15px;
-  background: white;
-  border-radius: 50%;
-  transition: transform .25s;
-  box-shadow: 0 1px 4px rgba(0,0,0,.3);
-}
-
-.toggle.on::after { transform: translateX(17px); }
-
-/* ── ADAPTATION TIMELINE ── */
-.adapt-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border2);
+/* ─── LOGS PANEL ─── */
+.log-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
   font-family: var(--mono);
   font-size: 11px;
+  line-height: 1.7;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
 }
-.adapt-row:last-child { border-bottom: none; }
+.log-line { display: flex; gap: 12px; padding: 2px 0; border-bottom: 1px solid rgba(17,30,48,.5); }
+.log-time { color: var(--text-mid); flex-shrink: 0; width: 85px; }
+.log-tag { flex-shrink: 0; width: 90px; }
+.log-msg { color: var(--text); flex: 1; }
+.log-tag.info    { color: var(--cyan); }
+.log-tag.warn    { color: var(--amber); }
+.log-tag.error   { color: var(--red); }
+.log-tag.action  { color: var(--green); }
+.log-tag.safety  { color: #a78bfa; }
+.log-tag.root    { color: var(--red); }
 
-.adapt-time { color: var(--text-mid); flex-shrink: 0; font-size: 10px; min-width: 90px; }
-.adapt-badge {
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 20px;
-  flex-shrink: 0;
-  background: var(--cyan-dim);
-  color: var(--cyan);
-  border: 1px solid rgba(0,229,255,.25);
+/* Section title */
+.section-title {
+  font-family: var(--head); font-size: 14px; font-weight: 700;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
 }
-.adapt-content { flex: 1; color: var(--text); }
-.adapt-kv { color: var(--text-mid); font-size: 10px; margin-top: 3px; }
-.adapt-kv span { color: var(--cyan); }
-
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 </style>
 </head>
 <body>
@@ -746,637 +471,513 @@ body::before {
 <aside class="sidebar">
   <div class="logo-block">
     <div class="logo-hex">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polygon points="16,2 28,9 28,23 16,30 4,23 4,9"/>
+        <polygon points="16,8 22,12 22,20 16,24 10,20 10,12" opacity=".4"/>
+        <circle cx="16" cy="16" r="2.5" fill="currentColor" stroke="none"/>
       </svg>
     </div>
   </div>
-
   <nav class="nav">
-    <div class="nav-item active" onclick="showPage('dashboard',this)" title="Dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-      </svg>
-      Dash
+    <div class="nav-item active" data-panel="dash">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      DASH
     </div>
-    <div class="nav-item" onclick="showPage('monitor',this)" title="Monitor">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="2" y="3" width="20" height="14" rx="2"/>
-        <path d="M8 21h8M12 17v4"/>
-      </svg>
-      Monitor
+    <div class="nav-item" data-panel="monitor">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      MONITOR
     </div>
-    <div class="nav-item" onclick="showPage('threats',this)" title="Threats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-      Threats
+    <div class="nav-item" data-panel="threats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2.5"/></svg>
+      THREATS
     </div>
-    <div class="nav-item" onclick="showPage('logs',this)" title="Logs">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
-      Logs
+    <div class="nav-item" data-panel="logs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      LOGS
     </div>
-    <div class="nav-item" onclick="showPage('actions',this)" title="Actions">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-      </svg>
-      Actions
+    <div class="nav-item" data-panel="actions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      ACTIONS
     </div>
-    <div class="nav-item" onclick="showPage('settings',this)" title="Config">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
-      </svg>
-      Config
+    <div class="nav-item" data-panel="config">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M21 12h-2M5 12H3M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M12 21v-2M12 5V3"/></svg>
+      CONFIG
     </div>
   </nav>
-
   <div class="sidebar-footer">
     <div class="live-dot">
       <div class="live-dot-inner"></div>
-      <div class="live-label">Live</div>
+      <span class="live-label">LIVE</span>
     </div>
   </div>
 </aside>
 
 <!-- MAIN -->
-<div class="main">
-
-  <div class="topbar">
-    <div class="topbar-brand">
-      <div class="topbar-name">Adaptive <em>System</em></div>
-      <div class="topbar-ver">v2.4.1</div>
-    </div>
+<main class="main">
+  <header class="topbar">
+    <div class="brand">ADAPTIVE <span>SYSTEM</span></div>
+    <div class="version">v2.4.1</div>
     <div class="spacer"></div>
-    <div class="engine-pill" id="engine-pill">
-      <div class="dot"></div>
-      <span id="engine-mode">Adaptive Engine Active</span>
-    </div>
-    <div class="clock" id="clock">—</div>
-  </div>
+    <div class="engine-badge">Adaptive Engine Active</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </header>
 
-  <div class="content">
+  <div class="panels">
 
-    <!-- ══ DASHBOARD ══ -->
-    <div class="page active" id="page-dashboard">
-
-      <div class="g4">
-        <div class="card metric-card">
-          <div class="card-glow"></div>
-          <div class="card-label">System Risk</div>
-          <div class="metric-num" id="m-risk">—</div>
-          <div class="metric-lbl">overall risk score</div>
-          <div class="track"><div class="fill" id="b-risk" style="width:0%"></div></div>
+    <!-- DASH -->
+    <div class="panel active" id="panel-dash">
+      <div class="dash-grid">
+        <div class="stat-card">
+          <div class="stat-label">System Risk</div>
+          <div class="stat-value red" id="d-risk">0%</div>
+          <div class="stat-sub">Overall Risk Score</div>
         </div>
-        <div class="card metric-card">
-          <div class="card-glow amber"></div>
-          <div class="card-label">Critical Entities</div>
-          <div class="metric-num warn" id="m-crit">—</div>
-          <div class="metric-lbl">critical state</div>
-          <div class="track"><div class="fill warn" id="b-crit" style="width:0%"></div></div>
+        <div class="stat-card">
+          <div class="stat-label">Critical Entities</div>
+          <div class="stat-value amber" id="d-critical">0</div>
+          <div class="stat-sub">Critical State</div>
         </div>
-        <div class="card metric-card">
-          <div class="card-glow green"></div>
-          <div class="card-label">Total Entities</div>
-          <div class="metric-num ok" id="m-total">—</div>
-          <div class="metric-lbl">monitored</div>
-          <div class="track"><div class="fill ok" id="b-total" style="width:100%"></div></div>
+        <div class="stat-card">
+          <div class="stat-label">Total Entities</div>
+          <div class="stat-value cyan" id="d-total">0</div>
+          <div class="stat-sub">Monitored</div>
         </div>
-        <div class="card metric-card">
-          <div class="card-glow"></div>
-          <div class="card-label">Response Level</div>
-          <div class="metric-num" id="m-mode" style="font-size:22px;margin-top:12px">—</div>
-          <div class="metric-lbl">adaptive policy</div>
-          <div class="track"><div class="fill" id="b-mode" style="width:100%"></div></div>
+        <div class="stat-card">
+          <div class="stat-label">Response Level</div>
+          <div class="stat-value green" id="d-mode" style="font-size:18px;padding-top:6px">—</div>
+          <div class="stat-sub">Adaptive Policy</div>
         </div>
       </div>
 
-      <div class="g2">
+      <div class="charts-row">
         <div class="card">
-          <div class="card-glow"></div>
-          <div class="card-label">Risk History — 60s</div>
-          <div class="chart-wrap">
-            <canvas id="riskChart"></canvas>
-          </div>
+          <div class="card-header">Risk History — <span id="risk-window">60s</span></div>
+          <div class="card-body"><canvas id="riskChart"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-glow green"></div>
-          <div class="card-label">Entity States</div>
-          <div class="chart-wrap">
-            <canvas id="entityChart"></canvas>
-          </div>
+          <div class="card-header">Entity States</div>
+          <div class="card-body"><canvas id="stateChart"></canvas></div>
         </div>
       </div>
 
-      <div class="g2">
+      <div class="charts-row">
         <div class="card">
-          <div class="card-glow green"></div>
-          <div class="card-label">System Status</div>
-          <div class="status-list">
-            <div class="status-row">
-              <div class="dot-ind g"></div>
-              <div class="status-lbl">Monitoring Engine</div>
-              <div class="pill active">Active</div>
-            </div>
-            <div class="status-row">
-              <div class="dot-ind b"></div>
-              <div class="status-lbl">Threat Detection</div>
-              <div class="pill running">Running</div>
-            </div>
-            <div class="status-row">
-              <div class="dot-ind g"></div>
-              <div class="status-lbl">Adaptive Response</div>
-              <div class="pill active">Active</div>
-            </div>
-            <div class="status-row">
-              <div class="dot-ind b"></div>
-              <div class="status-lbl">Process Scanner</div>
-              <div class="pill running">Running</div>
-            </div>
-            <div class="status-row">
-              <div class="dot-ind a"></div>
-              <div class="status-lbl">Deep Analysis</div>
-              <div class="pill standby">Standby</div>
-            </div>
+          <div class="card-header">Entity Overview</div>
+          <div class="card-body" style="padding:0">
+            <table class="entity-table">
+              <thead><tr><th>Entity</th><th>Risk</th><th>State</th><th>Trend</th></tr></thead>
+              <tbody id="entity-tbody"></tbody>
+            </table>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-glow"></div>
-          <div class="card-label">Entity Overview</div>
-          <table class="tbl">
-            <thead>
-              <tr>
-                <th>Entity</th>
-                <th>Risk</th>
-                <th>State</th>
-                <th>Trend</th>
-              </tr>
-            </thead>
-            <tbody id="dash-tbody"></tbody>
-          </table>
+          <div class="card-header">System Status</div>
+          <div class="card-body">
+            <div class="status-list">
+              <div class="status-row"><div class="status-dot active"></div><div class="status-name">Monitoring Engine</div><div class="status-tag active">Active</div></div>
+              <div class="status-row"><div class="status-dot running"></div><div class="status-name">Threat Detection</div><div class="status-tag running">Running</div></div>
+              <div class="status-row"><div class="status-dot active"></div><div class="status-name">Adaptive Response</div><div class="status-tag active">Active</div></div>
+              <div class="status-row"><div class="status-dot running"></div><div class="status-name">Process Scanner</div><div class="status-tag running">Running</div></div>
+              <div class="status-row"><div class="status-dot standby"></div><div class="status-name">Deep Analysis</div><div class="status-tag standby">Standby</div></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ══ MONITOR ══ -->
-    <div class="page" id="page-monitor">
-      <div class="sec-title">System Monitor — All Entities</div>
-      <div class="card">
-        <div class="card-glow"></div>
-        <div class="card-label">Full Entity Table</div>
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>Entity ID</th>
-              <th>Risk Score</th>
-              <th>State</th>
-              <th>Trend</th>
-              <th>Persistence</th>
-              <th>Volatility</th>
-            </tr>
-          </thead>
-          <tbody id="full-tbody"></tbody>
-        </table>
-      </div>
+    <!-- MONITOR -->
+    <div class="panel" id="panel-monitor">
+      <div class="section-title">Entity Monitor</div>
+      <div class="monitor-grid" id="monitor-grid"></div>
+    </div>
 
-      <div class="card">
-        <div class="card-glow amber"></div>
-        <div class="card-label">Normalized Signals</div>
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>Entity</th>
-              <th>Signal</th>
-              <th>Value</th>
-              <th>Confidence</th>
-            </tr>
-          </thead>
-          <tbody id="signal-tbody"></tbody>
-        </table>
+    <!-- THREATS -->
+    <div class="panel" id="panel-threats">
+      <div class="section-title">Active Threats</div>
+      <div class="threats-list" id="threats-list">
+        <div class="empty-state"><div class="icon">✅</div>No active threats detected</div>
       </div>
     </div>
 
-    <!-- ══ THREATS ══ -->
-    <div class="page" id="page-threats">
+    <!-- LOGS -->
+    <div class="panel" id="panel-logs">
+      <div class="section-title">System Logs</div>
+      <div class="log-container" id="log-container"></div>
+    </div>
 
-      <div class="threat-banner" id="threat-banner">
+    <!-- ACTIONS -->
+    <div class="panel" id="panel-actions">
+      <div class="section-title">Actions & Chaos Engineering</div>
+      <div class="actions-grid">
         <div>
-          <div class="tb-tag">Current Threat Level</div>
-          <div class="tb-level" id="tb-level">LOW</div>
-        </div>
-        <div style="margin-left:40px">
-          <div class="tb-tag">Decision Hint</div>
-          <div id="tb-hint" style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.05em">—</div>
-        </div>
-        <div style="margin-left:40px">
-          <div class="tb-tag">Risk Trend</div>
-          <div id="tb-trend" style="font-family:var(--mono);font-size:18px;font-weight:600;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em">—</div>
-        </div>
-        <div class="tb-score-wrap">
-          <div class="tb-score" id="tb-score">0</div>
-          <div class="tb-denom">/ 100</div>
-        </div>
-      </div>
-
-      <div class="g2">
-        <div class="card">
-          <div class="card-glow red"></div>
-          <div class="card-label">Critical Entities</div>
-          <div class="status-list" id="crit-list">
-            <div style="font-family:var(--mono);font-size:11px;color:var(--text-mid);padding:10px 0;">Loading...</div>
+          <div class="section-title" style="font-size:12px">Recent Actions</div>
+          <div class="action-log" id="action-log">
+            <div class="empty-state"><div class="icon">⚡</div>No actions executed yet</div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-glow amber"></div>
-          <div class="card-label">Degraded Entities</div>
-          <div class="status-list" id="degrad-list">
-            <div style="font-family:var(--mono);font-size:11px;color:var(--text-mid);padding:10px 0;">Loading...</div>
+        <div class="chaos-card">
+          <div class="chaos-title">⚡ Chaos Engineering</div>
+          <div class="chaos-desc">Inject real faults to test system resilience. The adaptive engine should detect and respond automatically.</div>
+          <div class="chaos-warning">⚠ Enable CHAOS_ENABLED=true in config.py to activate fault injection</div>
+          <div class="btn-row">
+            <button class="btn btn-red" onclick="triggerChaos('cpu')">CPU Spike</button>
+            <button class="btn btn-amber" onclick="triggerChaos('memory')">Memory Leak</button>
           </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-glow"></div>
-        <div class="card-label">Cognition Output</div>
-        <div id="cognition-box" style="font-family:var(--mono);font-size:11px;color:var(--text-mid);line-height:1.8;padding:4px 0;">
-          Waiting for data...
+          <div class="chaos-status" id="chaos-status"></div>
         </div>
       </div>
     </div>
 
-    <!-- ══ LOGS ══ -->
-    <div class="page" id="page-logs">
-      <div class="sec-title">System Logs — Live Stream</div>
-      <div class="terminal">
-        <div class="term-header">
-          <div class="term-dots">
-            <div class="td r"></div>
-            <div class="td y"></div>
-            <div class="td g"></div>
-          </div>
-          <div class="term-file">adaptive_engine.log — Live Stream</div>
-          <div class="spacer"></div>
-          <div style="font-family:var(--mono);font-size:9px;color:var(--text-mid);letter-spacing:.1em;">AUTO-SCROLL ON</div>
+    <!-- CONFIG -->
+    <div class="panel" id="panel-config">
+      <div class="section-title">Configuration</div>
+      <div class="config-grid">
+        <div class="config-card">
+          <div class="config-card-title">Telemetry</div>
+          <div class="config-item"><div class="config-label">Mode</div><div class="config-value mode" id="cfg-telemetry">—</div></div>
+          <div class="config-item"><div class="config-label">Cooldown Seconds</div><div class="config-value mode">30</div></div>
         </div>
-        <div class="term-body" id="log-term">
-          <div class="log-row">
-            <span class="log-t">00:00:00</span>
-            <span class="log-lv info">INFO</span>
-            <span class="log-m">Adaptive System <span>initialized</span></span>
-          </div>
-          <span class="cursor"></span>
+        <div class="config-card">
+          <div class="config-card-title">Runtime</div>
+          <div class="config-item"><div class="config-label">Simulation Mode</div><div class="config-value on">ENABLED</div></div>
+          <div class="config-item"><div class="config-label">API Port</div><div class="config-value mode">8000</div></div>
         </div>
-      </div>
-    </div>
-
-    <!-- ══ ACTIONS ══ -->
-    <div class="page" id="page-actions">
-      <div class="sec-title">Adaptive Response Panel</div>
-
-      <div class="action-grid">
-        <div class="act-btn" onclick="cmdAction('scan')">
-          <div class="act-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </div>
-          <div class="act-title">Scan System</div>
-          <div class="act-desc">Run full entity and signal scan. Detect anomalies and flag suspicious activity.</div>
+        <div class="config-card">
+          <div class="config-card-title">Chaos Engineering</div>
+          <div class="config-item"><div class="config-label">Chaos Enabled</div><div class="config-value off" id="cfg-chaos">DISABLED</div></div>
+          <div class="config-item"><div class="config-label">Chaos Interval</div><div class="config-value mode">60s</div></div>
         </div>
-        <div class="act-btn red" onclick="cmdAction('kill')">
-          <div class="act-ico red">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-            </svg>
-          </div>
-          <div class="act-title">Kill Process</div>
-          <div class="act-desc">Terminate flagged or selected suspicious process immediately.</div>
-        </div>
-        <div class="act-btn grn" onclick="cmdAction('protect')">
-          <div class="act-ico grn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <div class="act-title">Enable Protection</div>
-          <div class="act-desc">Activate maximum protection mode with real-time threat blocking.</div>
-        </div>
-        <div class="act-btn" onclick="cmdAction('snapshot')">
-          <div class="act-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-          </div>
-          <div class="act-title">Snapshot State</div>
-          <div class="act-desc">Capture current system state for forensic analysis and logging.</div>
-        </div>
-        <div class="act-btn" onclick="cmdAction('isolate')">
-          <div class="act-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <path d="M3 9h18M9 21V9"/>
-            </svg>
-          </div>
-          <div class="act-title">Isolate Process</div>
-          <div class="act-desc">Sandbox and isolate a target entity from system resources.</div>
-        </div>
-        <div class="act-btn grn" onclick="cmdAction('report')">
-          <div class="act-ico grn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>
-          </div>
-          <div class="act-title">Generate Report</div>
-          <div class="act-desc">Export full system health and threat analysis to log file.</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:4px">
-        <div class="card-glow"></div>
-        <div class="card-label">Action Log</div>
-        <div class="term-body" id="action-log" style="height:160px;padding:8px 0;"></div>
-      </div>
-    </div>
-
-    <!-- ══ SETTINGS ══ -->
-    <div class="page" id="page-settings">
-      <div class="sec-title">Configuration</div>
-
-      <div class="g2">
-        <div class="card">
-          <div class="card-glow"></div>
-          <div class="card-label">Engine Settings</div>
-          <div class="set-row">
-            <div class="set-info">
-              <div class="set-name">Adaptive Engine</div>
-              <div class="set-desc">Core monitoring and response engine</div>
-            </div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
-          </div>
-          <div class="set-row">
-            <div class="set-info">
-              <div class="set-name">Real-Time Threat Detection</div>
-              <div class="set-desc">Continuously scan for behavioral anomalies</div>
-            </div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
-          </div>
-          <div class="set-row">
-            <div class="set-info">
-              <div class="set-name">Auto-Kill Suspicious Processes</div>
-              <div class="set-desc">Automatically terminate flagged processes above risk threshold</div>
-            </div>
-            <div class="toggle" onclick="this.classList.toggle('on')"></div>
-          </div>
-          <div class="set-row">
-            <div class="set-info">
-              <div class="set-name">Deep Memory Analysis</div>
-              <div class="set-desc">Scan memory regions for injected payloads</div>
-            </div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
-          </div>
-          <div class="set-row">
-            <div class="set-info">
-              <div class="set-name">Network Monitoring</div>
-              <div class="set-desc">Track outbound/inbound connections per entity</div>
-            </div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
-          </div>
-          <div class="set-row">
-            <div class="set-info">
-              <div class="set-name">Verbose Logging</div>
-              <div class="set-desc">Log all system events to adaptive_engine.log</div>
-            </div>
-            <div class="toggle" onclick="this.classList.toggle('on')"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-glow amber"></div>
-          <div class="card-label">Adaptation History</div>
-          <div id="adapt-list" style="display:flex;flex-direction:column;">
-            <div style="font-family:var(--mono);font-size:11px;color:var(--text-mid);padding:10px 0;">Waiting for adaptations...</div>
-          </div>
+        <div class="config-card">
+          <div class="config-card-title">Thresholds</div>
+          <div class="config-item"><div class="config-label">Risk Stable</div><div class="config-value mode">0.5</div></div>
+          <div class="config-item"><div class="config-label">Recovery Persistence</div><div class="config-value mode">2 cycles</div></div>
         </div>
       </div>
     </div>
 
+  </div>
+</main>
+
+<!-- ENTITY DETAIL MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Entity Detail</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
 
 <script>
+const API = 'http://localhost:8000';
+let riskHistory = [];
+let logLines = [];
+let actionLines = [];
+let lastEntities = {};
+let riskChart, stateChart;
 
-/* CLOCK */
+// ── CLOCK ──
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8);
+}, 1000);
 
-function updateClock() {
-  document.getElementById("clock").textContent =
-    new Date().toLocaleTimeString("en-US",{hour12:false});
-}
-
-/* CHART SETUP */
-
-const riskHistory = [];
-const entityHistory = [];
-
-const riskCtx = document.getElementById("riskChart").getContext("2d");
-
-const riskChart = new Chart(riskCtx,{
-  type:"line",
-  data:{
-    labels:[],
-    datasets:[{
-      data:[],
-      borderColor:"#00e5ff",
-      borderWidth:1.5,
-      fill:true,
-      backgroundColor:"rgba(0,229,255,.15)",
-      tension:.4,
-      pointRadius:0
-    }]
-  },
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{
-      x:{display:false},
-      y:{
-        min:0,
-        max:1,
-        ticks:{
-          callback:v => (v*100)+"%"
-        }
-      }
-    }
-  }
+// ── NAV ──
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('panel-' + item.dataset.panel).classList.add('active');
+  });
 });
 
-const entityCtx = document.getElementById("entityChart").getContext("2d");
-
-const entityChart = new Chart(entityCtx,{
-  type:"bar",
-  data:{
-    labels:[],
-    datasets:[{
-      data:[],
-      backgroundColor:"rgba(0,255,179,.3)",
-      borderColor:"#00ffb3"
-    }]
-  },
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{
-      x:{display:false},
-      y:{min:0,max:10}
+// ── CHARTS ──
+function initCharts() {
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { display: false },
+      y: { display: false }
     }
-  }
-});
+  };
 
-/* FETCH STATE */
-
-async function fetchState(){
-  try{
-    const res = await fetch("http://localhost:8000/state");
-    const data = await res.json();
-    updateUI(data);
-
-    document.getElementById("engine-mode").textContent="Adaptive Engine Active";
-
-  }catch(e){
-
-    document.getElementById("engine-mode").textContent="Backend Offline";
-
-  }
-}
-
-/* STATE LOGIC */
-
-function computeState(risk){
-
-  if(risk >= 0.85) return "CRITICAL";
-  if(risk >= 0.65) return "DEGRADED";
-
-  return "OK";
-
-}
-
-/* UPDATE UI */
-
-function updateUI(data){
-
-  const entities = data.entities || {};
-  const entityEntries = Object.entries(entities);
-
-  const totalEntities = entityEntries.length;
-
-  let criticalCount = 0;
-
-  entityEntries.forEach(([id,e])=>{
-    const r = e.risk || 0;
-    const state = computeState(r);
-
-    if(state==="CRITICAL") criticalCount++;
+  riskChart = new Chart(document.getElementById('riskChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        borderColor: '#00e5ff',
+        backgroundColor: 'rgba(0,229,255,0.08)',
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: { ...chartDefaults, scales: { x: { display: false }, y: { display: false, min: 0, max: 1 } } }
   });
 
-  const systemRisk =
-    data.system?.risk ??
-    entityEntries.reduce((s,[,e])=>s+(e.risk||0),0)/Math.max(totalEntities,1);
-
-  const riskPercent = Math.round(systemRisk*100);
-
-  /* MAIN METRICS */
-
-  const riskEl = document.getElementById("m-risk");
-  riskEl.textContent = riskPercent+"%";
-
-  if(riskPercent >= 80) riskEl.className="metric-num crit";
-  else if(riskPercent >=60) riskEl.className="metric-num warn";
-  else riskEl.className="metric-num ok";
-
-  document.getElementById("b-risk").style.width=riskPercent+"%";
-
-  document.getElementById("m-crit").textContent=criticalCount;
-
-  document.getElementById("m-total").textContent=totalEntities;
-
-  document.getElementById("m-mode").textContent =
-    (data.system?.mode || "initial").toUpperCase();
-
-  /* CHART UPDATE */
-
-  riskHistory.push(systemRisk);
-
-  if(riskHistory.length>60) riskHistory.shift();
-
-  riskChart.data.labels=riskHistory.map((_,i)=>i);
-  riskChart.data.datasets[0].data=riskHistory;
-  riskChart.update();
-
-  entityHistory.push(totalEntities);
-
-  if(entityHistory.length>60) entityHistory.shift();
-
-  entityChart.data.labels=entityHistory.map((_,i)=>i);
-  entityChart.data.datasets[0].data=entityHistory;
-  entityChart.update();
-
-  /* TABLE */
-
-  const tbody=document.getElementById("dash-tbody");
-
-  if(!tbody) return;
-
-  tbody.innerHTML = entityEntries.map(([id,e])=>{
-
-    const r=e.risk || 0;
-    const rp=(r*100).toFixed(1);
-
-    const state=computeState(r);
-
-    let cls="ok";
-
-    if(state==="CRITICAL") cls="crit";
-    if(state==="DEGRADED") cls="warn";
-
-    return `
-    <tr>
-      <td>${id}</td>
-      <td>${rp}%</td>
-      <td>${state}</td>
-      <td>${e.trend || "stable"}</td>
-    </tr>
-    `;
-
-  }).join("");
-
+  stateChart = new Chart(document.getElementById('stateChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Healthy', 'Warning', 'Degraded', 'Critical'],
+      datasets: [{
+        data: [0, 0, 0, 0],
+        backgroundColor: ['rgba(0,255,179,0.6)', 'rgba(255,208,102,0.6)', 'rgba(255,171,0,0.6)', 'rgba(255,56,96,0.6)'],
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { display: true, ticks: { color: '#567080', font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } },
+        y: { display: false }
+      }
+    }
+  });
 }
 
-/* INIT */
+// ── RISK COLOR ──
+function riskColor(r) {
+  if (r >= 0.85) return 'var(--red)';
+  if (r >= 0.6)  return 'var(--amber)';
+  if (r >= 0.3)  return '#ffd066';
+  return 'var(--green)';
+}
 
-document.addEventListener("DOMContentLoaded",()=>{
+function stateClass(s) {
+  if (!s) return 'ok';
+  return s.toLowerCase();
+}
 
-  updateClock();
-  setInterval(updateClock,1000);
+// ── FETCH STATE ──
+async function fetchState() {
+  try {
+    const res = await fetch(API + '/state');
+    const data = await res.json();
+    if (data.error) return;
 
-  fetchState();
-  setInterval(fetchState,2000);
+    const entities = data.entities || {};
+    const system   = data.system   || {};
 
+    // System risk
+    const sysRisk = system.risk || 0;
+    riskHistory.push(sysRisk);
+    if (riskHistory.length > 60) riskHistory.shift();
+
+    // Stats
+    const entityList = Object.entries(entities);
+    const critical = entityList.filter(([,e]) => e.health === 'CRITICAL').length;
+    const pct = Math.round(sysRisk * 100);
+
+    document.getElementById('d-risk').textContent    = pct + '%';
+    document.getElementById('d-critical').textContent = critical;
+    document.getElementById('d-total').textContent    = entityList.length;
+    document.getElementById('d-mode').textContent     = (system.mode || 'initial').toUpperCase();
+
+    // Risk color
+    const rEl = document.getElementById('d-risk');
+    rEl.style.color = riskColor(sysRisk);
+
+    // Risk chart
+    riskChart.data.labels = riskHistory.map((_, i) => i);
+    riskChart.data.datasets[0].data = riskHistory;
+    riskChart.update('none');
+
+    // State chart
+    const counts = [0,0,0,0];
+    entityList.forEach(([,e]) => {
+      const h = (e.health || '').toUpperCase();
+      if (h === 'HEALTHY') counts[0]++;
+      else if (h === 'WARNING') counts[1]++;
+      else if (h === 'DEGRADED') counts[2]++;
+      else if (h === 'CRITICAL') counts[3]++;
+    });
+    stateChart.data.datasets[0].data = counts;
+    stateChart.update('none');
+
+    // Entity table
+    const tbody = document.getElementById('entity-tbody');
+    tbody.innerHTML = entityList.map(([id, e]) => {
+      const risk = e.risk ?? 0;
+      const pct2 = Math.round(risk * 100);
+      const state = e.health || 'OK';
+      const trend = e.trend || '—';
+      const col = riskColor(risk);
+      return `<tr onclick="showDetail('${id}', ${JSON.stringify(JSON.stringify(e))})">
+        <td style="font-weight:700">${id}</td>
+        <td>
+          <div class="risk-bar-wrap"><div class="risk-bar-fill" style="width:${pct2}%;background:${col}"></div></div>
+          <span style="color:${col}">${pct2}%</span>
+        </td>
+        <td><span class="badge ${stateClass(state)}">${state}</span></td>
+        <td style="color:var(--text-mid)">${trend}</td>
+      </tr>`;
+    }).join('');
+
+    // Monitor grid
+    const grid = document.getElementById('monitor-grid');
+    grid.innerHTML = entityList.map(([id, e]) => {
+      const risk = e.risk ?? 0;
+      const pct2 = Math.round(risk * 100);
+      const state = (e.health || 'OK').toLowerCase();
+      const col = riskColor(risk);
+      return `<div class="entity-card ${state}" onclick="showDetail('${id}', ${JSON.stringify(JSON.stringify(e))})">
+        <div class="entity-name">${id}</div>
+        <div class="entity-risk-big" style="color:${col}">${pct2}%</div>
+        <span class="badge ${state}">${(e.health||'OK')}</span>
+        <div class="entity-metrics">
+          <div class="metric-row">TREND <div class="bar"><div class="bar-fill" style="width:${pct2}%;background:${col}"></div></div> ${e.trend||'—'}</div>
+          <div class="metric-row">PRED  <div class="bar"><div class="bar-fill" style="width:${Math.round((e.predicted_risk||0)*100)}%;background:var(--cyan)"></div></div> ${Math.round((e.predicted_risk||0)*100)}%</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Threats
+    const threats = entityList.filter(([,e]) => ['CRITICAL','DEGRADED'].includes(e.health));
+    const tlist = document.getElementById('threats-list');
+    if (threats.length === 0) {
+      tlist.innerHTML = '<div class="empty-state"><div class="icon">✅</div>No active threats detected</div>';
+    } else {
+      tlist.innerHTML = threats.map(([id, e]) => {
+        const isCrit = e.health === 'CRITICAL';
+        return `<div class="threat-item ${isCrit ? 'critical' : 'degraded'}">
+          <div class="threat-icon">${isCrit ? '🔴' : '🟡'}</div>
+          <div class="threat-content">
+            <div class="threat-title">${id} — ${e.health}</div>
+            <div class="threat-desc">Risk: ${Math.round((e.risk||0)*100)}% | Trend: ${e.trend||'—'} | Action: ${e.last_action||'none'}</div>
+          </div>
+          <div class="threat-time">${e.action_status||'—'}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Action log — detect new EXECUTED actions
+    entityList.forEach(([id, e]) => {
+      const prev = lastEntities[id];
+      if (e.action_status === 'EXECUTED' && (!prev || prev.action_status !== 'EXECUTED')) {
+        const t = new Date().toTimeString().slice(0,8);
+        actionLines.unshift({ time: t, id, action: e.last_action, risk: Math.round((e.risk||0)*100) });
+        if (actionLines.length > 20) actionLines.pop();
+        addLog('action', `ACTION on ${id}: ${e.last_action} (risk=${Math.round((e.risk||0)*100)}%)`);
+      }
+      if (e.action_status === 'COOLDOWN' && (!prev || prev.action_status !== 'COOLDOWN')) {
+        addLog('warn', `COOLDOWN active for ${id}`);
+      }
+    });
+
+    lastEntities = Object.fromEntries(entityList.map(([id,e]) => [id, {...e}]));
+
+    // Root cause log
+    if (system.root_cause) {
+      addLog('root', `ROOT CAUSE: ${system.root_cause}`);
+    }
+
+    // Render action log
+    const alog = document.getElementById('action-log');
+    if (actionLines.length === 0) {
+      alog.innerHTML = '<div class="empty-state"><div class="icon">⚡</div>No actions executed yet</div>';
+    } else {
+      alog.innerHTML = actionLines.map(a =>
+        `<div class="action-item">
+          <span class="badge critical tag">${a.action}</span>
+          <span class="msg">${a.id} — risk ${a.risk}% at ${a.time}</span>
+        </div>`
+      ).join('');
+    }
+
+  } catch(e) {
+    addLog('error', 'API unreachable — is main.py running?');
+  }
+}
+
+// ── LOGS ──
+function addLog(type, msg) {
+  const t = new Date().toTimeString().slice(0,8);
+  logLines.unshift({ t, type, msg });
+  if (logLines.length > 200) logLines.pop();
+  renderLogs();
+}
+
+function renderLogs() {
+  document.getElementById('log-container').innerHTML = logLines.map(l =>
+    `<div class="log-line">
+      <span class="log-time">${l.t}</span>
+      <span class="log-tag ${l.type}">[${l.type.toUpperCase()}]</span>
+      <span class="log-msg">${l.msg}</span>
+    </div>`
+  ).join('');
+}
+
+// ── ENTITY DETAIL MODAL ──
+function showDetail(id, jsonStr) {
+  const e = JSON.parse(jsonStr);
+  document.getElementById('modal-title').textContent = id;
+  const risk = e.risk ?? 0;
+  const col = riskColor(risk);
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">Health Metrics</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-item-label">Risk Score</div><div class="detail-item-value" style="color:${col}">${Math.round(risk*100)}%</div></div>
+        <div class="detail-item"><div class="detail-item-label">State</div><div class="detail-item-value"><span class="badge ${stateClass(e.health)}">${e.health||'OK'}</span></div></div>
+        <div class="detail-item"><div class="detail-item-label">Trend</div><div class="detail-item-value" style="color:var(--cyan)">${e.trend||'—'}</div></div>
+        <div class="detail-item"><div class="detail-item-label">Predicted Risk</div><div class="detail-item-value" style="color:var(--amber)">${Math.round((e.predicted_risk||0)*100)}%</div></div>
+        <div class="detail-item"><div class="detail-item-label">Persistence</div><div class="detail-item-value">${e.persistence??'—'}</div></div>
+        <div class="detail-item"><div class="detail-item-label">Volatility</div><div class="detail-item-value">${e.volatility??'—'}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Last Action</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-item-label">Action</div><div class="detail-item-value">${e.last_action||'none'}</div></div>
+        <div class="detail-item"><div class="detail-item-label">Status</div><div class="detail-item-value"><span class="badge ${stateClass(e.action_status)}">${e.action_status||'—'}</span></div></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
 });
 
+// ── CHAOS ──
+async function triggerChaos(type) {
+  const statusEl = document.getElementById('chaos-status');
+  statusEl.textContent = `Triggering ${type} fault...`;
+  statusEl.className = 'chaos-status';
+  try {
+    const res = await fetch(`${API}/chaos/${type}`, { method: 'POST' });
+    const data = await res.json();
+    if (data.error) {
+      statusEl.textContent = '✗ ' + data.error;
+      statusEl.className = 'chaos-status err';
+    } else {
+      statusEl.textContent = '✓ ' + data.status;
+      statusEl.className = 'chaos-status ok';
+      addLog('warn', `CHAOS: ${type} fault injected`);
+    }
+  } catch(e) {
+    statusEl.textContent = '✗ API unreachable';
+    statusEl.className = 'chaos-status err';
+  }
+}
+
+// ── INIT ──
+initCharts();
+addLog('info', 'Dashboard connected to Adaptive System API');
+fetchState();
+setInterval(fetchState, 2000);
 </script>
 </body>
 </html>
