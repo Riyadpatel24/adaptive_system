@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# Load .env file if present (ignored in Docker where env vars are injected directly)
+load_dotenv()
 
 # ----------------------------------------------------------
 # STORAGE
@@ -34,6 +38,11 @@ CHAOS_INTERVAL_SECONDS = int(os.getenv("CHAOS_INTERVAL_SECONDS", "60"))
 # ----------------------------------------------------------
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8000"))
+
+# ----------------------------------------------------------
+# SECURITY
+# ----------------------------------------------------------
+API_KEY = os.getenv("API_KEY", "")
 
 # ----------------------------------------------------------
 # SYSTEM THRESHOLDS

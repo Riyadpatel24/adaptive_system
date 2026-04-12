@@ -1,10 +1,31 @@
-__pycache__
-*.pyc
+# Python cache
+__pycache__/
+*.py[cod]
 *.pyo
+
+# Git
 .git
-.vscode
+.gitignore
+
+# IDE / OS
+.vscode/
 .DS_Store
+
+# Environment files (never bake secrets into image)
+.env
+.env.*
+
+# Runtime storage (use Docker volume instead)
 storage/events.db
+storage/events.db-journal
 storage/memory.json
-*.7z
+
+# Archives
 *.zip
+*.7z
+*.tar.gz
+
+# Docs (not needed in container)
+README.md
+DEPLOY.md
+ARCHITECTURE.md

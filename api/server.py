@@ -1,17 +1,36 @@
+import os
 import threading
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi.security.api_key import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 from models.state_snapshot import StateSnapshot
 
 app = FastAPI(title="Adaptive System API")
 
+# ----------------------------------------------------------
+# CORS
+# ----------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+# ----------------------------------------------------------
+# API KEY AUTH
+# Set API_KEY env var to protect all endpoints.
+# If API_KEY is not set, auth is disabled (dev mode).
+# ----------------------------------------------------------
+API_KEY = os.getenv("API_KEY", "")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+def require_api_key(key: str = Security(api_key_header)):
+    if not API_KEY:
+        return  # Auth disabled — dev mode
+    if key != API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid or missing API key")
 
 # ----------------------------------------------------------
 # Thread-safe shared state
@@ -29,10 +48,11 @@ def set_snapshot(s: StateSnapshot, lock: threading.Lock):
 
 @app.get("/health")
 def health():
+    """Public health check — no auth required."""
     return {"status": "ok"}
 
 
-@app.get("/state")
+@app.get("/state", dependencies=[Depends(require_api_key)])
 def get_state():
     with _lock:
         if _snapshot is None:
@@ -40,7 +60,7 @@ def get_state():
         return _snapshot.to_dict()
 
 
-@app.get("/entities")
+@app.get("/entities", dependencies=[Depends(require_api_key)])
 def get_entities():
     with _lock:
         if _snapshot is None:
@@ -48,7 +68,7 @@ def get_entities():
         return _snapshot.entities
 
 
-@app.get("/entities/{entity_id}")
+@app.get("/entities/{entity_id}", dependencies=[Depends(require_api_key)])
 def get_entity(entity_id: str):
     with _lock:
         if _snapshot is None:
@@ -59,21 +79,21 @@ def get_entity(entity_id: str):
         return entity
 
 
-@app.post("/chaos/cpu")
+@app.post("/chaos/cpu", dependencies=[Depends(require_api_key)])
 def trigger_cpu_spike():
     from config import CHAOS_ENABLED
     if not CHAOS_ENABLED:
-        return {"error": "Chaos disabled. Set CHAOS_ENABLED=true in config.py"}
+        return {"error": "Chaos disabled. Set CHAOS_ENABLED=true in environment."}
     from chaos.fault_injector import cpu_spike
     cpu_spike(duration=10)
     return {"status": "cpu spike triggered", "duration": 10}
 
 
-@app.post("/chaos/memory")
+@app.post("/chaos/memory", dependencies=[Depends(require_api_key)])
 def trigger_memory_leak():
     from config import CHAOS_ENABLED
     if not CHAOS_ENABLED:
-        return {"error": "Chaos disabled. Set CHAOS_ENABLED=true in config.py"}
+        return {"error": "Chaos disabled. Set CHAOS_ENABLED=true in environment."}
     from chaos.fault_injector import memory_leak
     memory_leak(duration=10)
     return {"status": "memory leak triggered", "duration": 10}

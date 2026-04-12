@@ -1,128 +1,267 @@
-# Adaptive System — Autonomous SRE Engine
+# 🧠 Adaptive System — Autonomous SRE Engine
 
-An autonomous Site Reliability Engineering (SRE) system that monitors
-service health in real time, predicts failures, identifies root causes,
-and takes self-healing actions — without human intervention.
-
-Built as a major college project demonstrating systems design, signal
-processing, and autonomous decision-making.
+An autonomous Site Reliability Engineering (SRE) system that continuously monitors system entities, detects anomalies, predicts failures, and takes corrective actions — all in a self-tuning loop.
 
 ---
 
-## What It Does
+## 📐 Architecture
 
-Most monitoring systems alert a human when something goes wrong.
-This system acts on its own:
-
-1. **Ingests telemetry** — CPU, memory, disk metrics (synthetic or real)
-2. **Analyses signals** — normalizes and scores risk per entity
-3. **Predicts failures** — linear trend analysis forecasts risk 3 cycles ahead
-4. **Reasons per entity** — classifies each service: HEALTHY / WARNING / DEGRADED / CRITICAL
-5. **Finds root causes** — traverses a dependency graph to find upstream failures
-6. **Takes action** — lockdown, restart, scale — with safety guards and cooldowns
-7. **Self-recovers** — risk decay and policy de-escalation when trend improves
-8. **Live dashboard** — real-time frontend + REST API
-
----
-
-## Architecture
 ```
-main.py (control loop, 2s tick)
-│
-├── sre/
-│   ├── synthetic_telemetry.py   — generates or reads system metrics
-│   └── telemetry_ingestion.py   — writes events to SQLite
-│
-├── analysis/
-│   ├── telemetry_normalizer.py  — normalizes raw events into signals
-│   ├── signals/
-│   │   ├── signal_analyzer.py   — scores risk per entity
-│   │   └── time_analyzer.py     — detects trend, volatility, persistence
-│   ├── reasoning/
-│   │   ├── cognition_engine.py  — per-entity decision making
-│   │   ├── failure_predictor.py — linear regression risk forecast
-│   │   ├── root_cause_engine.py — dependency graph traversal
-│   │   └── dependency_graph.py  — service dependency map
-│   ├── recovery/
-│   │   ├── recovery_engine.py   — detects recovery, decays risk
-│   │   └── cooldown_manager.py  — prevents action thrashing
-│   └── policy/
-│       └── policy_engine.py     — adapts system parameters over time
+Telemetry → Normalize → Analyze → Cognition → Safety Guard → Execute Action
+                                      ↓
+                              Root Cause Engine
+                                      ↓
+                              Policy Adaptation
+```
+
+The system runs a loop every 2 seconds:
+1. Collect synthetic (or real) telemetry
+2. Normalize signals across a rolling window
+3. Analyze entity health and risk scores
+4. Predict failures using temporal history
+5. Reason about actions via the Cognition Engine
+6. Pass through Safety Guard + Cooldown checks
+7. Execute actions (LOCKDOWN / THROTTLE_NODE)
+8. Run root cause analysis across all entities
+9. Adapt system policy (timeout, retry limits, mode)
+
+A FastAPI server runs in a background thread and exposes the live system state on port `8000`. A Flask target server simulates a real web service on port `5000`.
+
+---
+
+## 📁 Project Structure
+
+```
+adaptive_system/
+├── main.py                  # Core control loop
+├── start.py                 # Launcher (starts both servers)
+├── config.py                # All configuration via env vars
+├── target_server.py         # Simulated Flask target service (port 5000)
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
 │
 ├── actions/
-│   ├── action.py                — Action model
-│   ├── safety_guard.py          — blocks actions on noisy/recovering data
-│   └── executor.py              — executes actions (SIMULATION_MODE safe)
+│   ├── action.py            # Action model (LOCKDOWN, THROTTLE_NODE)
+│   ├── executor.py          # Executes or simulates actions
+│   ├── safety_guard.py      # Blocks unsafe/premature actions
+│   └── recovery_actions.py
 │
-├── api/                         — FastAPI REST API (thread-safe)
-├── frontend/                    — live dashboard (Chart.js)
-├── chaos/                       — fault injector for resilience testing
-├── models/                      — data models
-├── storage/                     — SQLite + JSON memory
-├── logger/                      — event + adaptation logger
-└── config.py                    — all configuration lives here
+├── analysis/
+│   ├── telemetry_normalizer.py
+│   ├── memory.py
+│   ├── signals/
+│   │   ├── signal_analyzer.py   # Risk scoring per entity
+│   │   └── time_analyzer.py     # Trend, persistence, volatility
+│   ├── reasoning/
+│   │   ├── cognition_engine.py  # Decision engine
+│   │   ├── failure_predictor.py
+│   │   ├── root_cause_engine.py
+│   │   └── dependency_graph.py
+│   ├── policy/
+│   │   └── policy_engine.py     # Adaptive timeout/retry tuning
+│   └── recovery/
+│       ├── recovery_engine.py
+│       └── cooldown_manager.py
+│
+├── api/
+│   └── server.py            # FastAPI — /health /state /entities
+│
+├── models/
+│   ├── system_state.py
+│   ├── state_snapshot.py
+│   └── ...
+│
+├── sre/
+│   ├── synthetic_telemetry.py
+│   └── telemetry_ingestion.py
+│
+├── storage/
+│   └── temporal_memory.py
+│
+├── logger/
+│   └── event_logger.py
+│
+├── chaos/
+│   └── fault_injector.py    # CPU spike / memory leak injection
+│
+├── frontend/
+│   └── adaptive-system.html # Live dashboard (open in browser)
+│
+└── tests/
+    └── test_core.py
 ```
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
+
+### Option 1 — Docker (Recommended)
+
 ```bash
-git clone https://github.com/Riyadpatel24/adaptive_system
+# 1. Clone the repo
+git clone https://github.com/Riyadpatel24/adaptive_system.git
 cd adaptive_system
-pip install -r requirements.txt
-python main.py
+
+# 2. Create your environment file
+cp .env.example .env
+
+# 3. Edit .env — at minimum set a strong API_KEY
+nano .env
+
+# 4. Build and run
+docker compose up --build
+
+# 5. Open the dashboard
+open frontend/adaptive-system.html
+# Or visit: http://localhost:8000/state
 ```
 
-Then open `frontend/adaptive-system.html` in your browser.
+### Option 2 — Local Python
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Riyadpatel24/adaptive_system.git
+cd adaptive_system
+
+# 2. Create a virtual environment
+python -m venv venv
+source venv/bin/activate       # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Set up environment
+cp .env.example .env
+# Edit .env as needed
+
+# 5. Run
+python start.py
+```
 
 ---
 
-## Configuration
+## 🔌 API Reference
 
-All settings are in `config.py`. Key options:
+All endpoints except `/health` require the `X-API-Key` header:
+
+```
+X-API-Key: your_api_key_here
+```
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check (no auth) |
+| GET | `/state` | Full system snapshot |
+| GET | `/entities` | All monitored entities |
+| GET | `/entities/{id}` | Single entity detail |
+| POST | `/chaos/cpu` | Trigger CPU spike (requires CHAOS_ENABLED=true) |
+| POST | `/chaos/memory` | Trigger memory leak (requires CHAOS_ENABLED=true) |
+
+**Interactive docs:** http://localhost:8000/docs
+
+**Example request:**
+```bash
+curl http://localhost:8000/state \
+  -H "X-API-Key: your_api_key_here"
+```
+
+---
+
+## ⚙️ Configuration
+
+All settings are controlled via environment variables. Copy `.env.example` to `.env` to get started.
 
 | Variable | Default | Description |
-|---|---|---|
-| `TELEMETRY_MODE` | `synthetic` | `synthetic` or `real` (reads your actual machine via psutil) |
-| `SIMULATION_MODE` | `true` | If true, actions are logged only — nothing real executes |
-| `CHAOS_ENABLED` | `false` | Inject faults to test resilience |
-| `ACTION_COOLDOWN_SECONDS` | `30` | Min gap between repeated actions on same entity |
+|----------|---------|-------------|
+| `API_KEY` | `""` | Secret key for API auth. Empty = auth disabled (dev only) |
+| `TELEMETRY_MODE` | `synthetic` | `synthetic` or `real` |
+| `SIMULATION_MODE` | `true` | `true` = log actions only, `false` = execute them |
+| `ACTION_COOLDOWN_SECONDS` | `30` | Minimum seconds between actions on the same entity |
+| `CHAOS_ENABLED` | `false` | Enable chaos fault injection |
+| `CHAOS_INTERVAL_SECONDS` | `60` | How often chaos is injected (in loop cycles) |
+| `API_HOST` | `0.0.0.0` | API bind address |
+| `API_PORT` | `8000` | API port |
+| `DB_PATH` | `storage/events.db` | SQLite database path |
+| `MEMORY_PATH` | `storage/memory.json` | Persistent memory file path |
 
-Override via environment variables:
+---
+
+## 🧪 Running Tests
+
 ```bash
-TELEMETRY_MODE=real python main.py
+# Make sure dependencies are installed
+pip install -r requirements.txt
+pip install pytest
+
+# Run all tests
+pytest tests/test_core.py -v
 ```
 
 ---
 
-## API Endpoints
+## 🌐 Dashboard
 
-| Endpoint | Description |
-|---|---|
-| `GET /health` | Liveness check |
-| `GET /state` | Full system snapshot |
-| `GET /entities` | All entity states |
-| `GET /entities/{id}` | Single entity detail |
+Open `frontend/adaptive-system.html` directly in your browser. It polls the `/state` and `/entities` API endpoints and shows a live view of:
 
----
+- System risk level
+- Per-entity health, trend, and predicted risk
+- Action history
+- Policy mode (normal / degraded / critical)
 
-## Tech Stack
-
-Python 3.12 · FastAPI · SQLite · NumPy · psutil · Chart.js
+> **Note:** If you set an `API_KEY`, update the `X-API-Key` header in the dashboard's fetch calls inside `adaptive-system.html`.
 
 ---
 
-## Simulation vs Real
+## 🔥 Chaos Engineering
 
-Currently runs on synthetic telemetry to simulate SRE scenarios.
-The architecture is designed so switching to real monitoring means:
-- Set `TELEMETRY_MODE=real` in config (already implemented via psutil)
-- Replace executor stubs with actual subprocess or Kubernetes API calls
+To test system resilience, enable chaos mode in `.env`:
+
+```env
+CHAOS_ENABLED=true
+CHAOS_INTERVAL_SECONDS=60
+```
+
+Or trigger manually via the API:
+
+```bash
+curl -X POST http://localhost:8000/chaos/cpu \
+  -H "X-API-Key: your_api_key_here"
+```
 
 ---
 
-## Chaos Engineering
+## 🛡️ Security Notes
 
-Set `CHAOS_ENABLED=true` in `config.py` to enable periodic fault
-injection. The system will inject CPU spikes and memory leaks, and
-you can observe whether the adaptive engine detects and responds.
+- Always set a strong `API_KEY` in production — never use the default `changeme`
+- The `/health` endpoint is intentionally public for load balancer checks
+- Run behind a reverse proxy (nginx/Caddy) with HTTPS in production
+- `SIMULATION_MODE=false` means real system actions will execute — verify carefully before enabling
+
+---
+
+## 📦 Deployment Checklist
+
+- [ ] `cp .env.example .env` and fill in all values
+- [ ] Set a strong `API_KEY`
+- [ ] Set `SIMULATION_MODE=false` when ready for real actions
+- [ ] `docker compose up --build`
+- [ ] Verify `/health` returns `{"status": "ok"}`
+- [ ] Open dashboard and confirm entities are populating
+- [ ] (Optional) Set up nginx reverse proxy with HTTPS
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m "Add my feature"`)
+4. Push and open a Pull Request
+
+---
+
+## 📄 License
+
+MIT

@@ -671,6 +671,9 @@ canvas { max-height: 180px; }
 
 <script>
 const API = 'http://localhost:8000';
+// ── Set your API_KEY here (must match API_KEY in your .env) ──
+const API_KEY = '330c7c4120fb13d4abf462a8f3630eb5a8bd92900c8a812bf847d8c9f62de21e';
+const HEADERS = API_KEY ? { 'X-API-Key': API_KEY } : {};
 let riskHistory = [];
 let logLines = [];
 let actionLines = [];
@@ -758,7 +761,7 @@ function stateClass(s) {
 // ── FETCH STATE ──
 async function fetchState() {
   try {
-    const res = await fetch(API + '/state');
+    const res = await fetch(API + '/state', { headers: HEADERS });
     const data = await res.json();
     if (data.error) return;
 
@@ -957,7 +960,7 @@ async function triggerChaos(type) {
   statusEl.textContent = `Triggering ${type} fault...`;
   statusEl.className = 'chaos-status';
   try {
-    const res = await fetch(`${API}/chaos/${type}`, { method: 'POST' });
+    const res = await fetch(`${API}/chaos/${type}`, { method: 'POST', headers: HEADERS });
     const data = await res.json();
     if (data.error) {
       statusEl.textContent = '✗ ' + data.error;

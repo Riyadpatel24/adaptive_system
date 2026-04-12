@@ -1,0 +1,32 @@
+
+services:
+  adaptive-system:
+    build: .
+    container_name: adaptive_system
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+      - "5000:5000"
+    environment:
+      - TELEMETRY_MODE=${TELEMETRY_MODE:-synthetic}
+      - SIMULATION_MODE=${SIMULATION_MODE:-false}
+      - CHAOS_ENABLED=${CHAOS_ENABLED:-false}
+      - CHAOS_INTERVAL_SECONDS=${CHAOS_INTERVAL_SECONDS:-60}
+      - ACTION_COOLDOWN_SECONDS=${ACTION_COOLDOWN_SECONDS:-30}
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DB_PATH=/app/storage/events.db
+      - MEMORY_PATH=/app/storage/memory.json
+      - API_KEY=${API_KEY:-changeme}
+    volumes:
+      - adaptive_storage:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  adaptive_storage:
+    driver: local
