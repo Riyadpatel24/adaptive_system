@@ -463,6 +463,59 @@ canvas { max-height: 180px; }
   margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
 }
 .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+/* ─── CONNECT MODAL ─── */
+.connect-overlay {
+  display: flex;
+  position: fixed; inset: 0;
+  background: rgba(4,8,15,.95);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.connect-overlay.hidden { display: none; }
+.connect-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 480px;
+  padding: 36px 40px;
+}
+.connect-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.connect-logo svg { width: 36px; height: 36px; color: var(--cyan); filter: drop-shadow(0 0 8px var(--cyan)); }
+.connect-logo-text { font-family: var(--head); font-size: 18px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.connect-logo-text span { color: var(--cyan); }
+.connect-title { font-family: var(--head); font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.connect-sub { font-size: 12px; color: var(--text-mid); margin-bottom: 28px; line-height: 1.6; }
+.connect-field { margin-bottom: 16px; }
+.connect-label { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 6px; }
+.connect-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 14px;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  outline: none; transition: border-color .2s;
+}
+.connect-input:focus { border-color: var(--cyan); }
+.connect-input::placeholder { color: var(--text-low); }
+.connect-btn {
+  width: 100%; margin-top: 8px; padding: 12px;
+  background: var(--cyan-dim); border: 1px solid rgba(0,229,255,.4);
+  border-radius: 8px; color: var(--cyan);
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; transition: background .2s;
+}
+.connect-btn:hover { background: rgba(0,229,255,.2); }
+.connect-error { font-family: var(--mono); font-size: 11px; color: var(--red); margin-top: 10px; min-height: 16px; }
+.connect-hint { font-family: var(--mono); font-size: 10px; color: var(--text-mid); margin-top: 16px; line-height: 1.6; }
+.api-indicator {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10px; color: var(--text-mid);
+  cursor: pointer; padding: 4px 10px; border-radius: 4px;
+  border: 1px solid var(--border); transition: border-color .2s, color .2s;
+}
+.api-indicator:hover { border-color: var(--cyan); color: var(--cyan); }
+.api-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
 </style>
 </head>
 <body>
@@ -518,6 +571,10 @@ canvas { max-height: 180px; }
     <div class="brand">ADAPTIVE <span>SYSTEM</span></div>
     <div class="version">v2.4.1</div>
     <div class="spacer"></div>
+    <div class="api-indicator" id="api-indicator" onclick="showConnect()" title="Click to change connection">
+      <div class="dot"></div>
+      <span id="api-url-label">localhost:8000</span>
+    </div>
     <div class="engine-badge">Adaptive Engine Active</div>
     <div class="clock" id="clock">--:--:--</div>
   </header>
@@ -658,6 +715,33 @@ canvas { max-height: 180px; }
   </div>
 </main>
 
+<!-- CONNECT MODAL -->
+<div class="connect-overlay" id="connect-overlay">
+  <div class="connect-box">
+    <div class="connect-logo">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polygon points="16,2 28,9 28,23 16,30 4,23 4,9"/>
+        <polygon points="16,8 22,12 22,20 16,24 10,20 10,12" opacity=".4"/>
+        <circle cx="16" cy="16" r="2.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <div class="connect-logo-text">ADAPTIVE <span>SYSTEM</span></div>
+    </div>
+    <div class="connect-title">Connect to your deployment</div>
+    <div class="connect-sub">Enter the URL of your running Adaptive System API and your API key to connect the dashboard.</div>
+    <div class="connect-field">
+      <div class="connect-label">API URL</div>
+      <input class="connect-input" id="input-api-url" type="text" placeholder="https://your-app.onrender.com" />
+    </div>
+    <div class="connect-field">
+      <div class="connect-label">API Key</div>
+      <input class="connect-input" id="input-api-key" type="password" placeholder="Your X-API-Key value from .env" />
+    </div>
+    <button class="connect-btn" onclick="handleConnect()">Connect →</button>
+    <div class="connect-error" id="connect-error"></div>
+    <div class="connect-hint">💡 Leave API Key blank if you haven't set one.<br>Your settings are saved in the browser for next time.</div>
+  </div>
+</div>
+
 <!-- ENTITY DETAIL MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -680,6 +764,65 @@ let logLines = [];
 let actionLines = [];
 let lastEntities = {};
 let riskChart, stateChart;
+
+// ── CONNECT MODAL ──
+function showConnect() {
+  document.getElementById('input-api-url').value = API;
+  document.getElementById('input-api-key').value = API_KEY;
+  document.getElementById('connect-error').textContent = '';
+  document.getElementById('connect-overlay').classList.remove('hidden');
+}
+
+function hideConnect() {
+  document.getElementById('connect-overlay').classList.add('hidden');
+}
+
+async function handleConnect() {
+  const url = document.getElementById('input-api-url').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('input-api-key').value.trim();
+  const errEl = document.getElementById('connect-error');
+
+  if (!url) { errEl.textContent = '✗ API URL is required'; return; }
+
+  errEl.textContent = 'Testing connection...';
+  try {
+    const res = await fetch(url + '/health', { headers: key ? { 'X-API-Key': key } : {} });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      API = url;
+      API_KEY = key;
+      HEADERS = key ? { 'X-API-Key': key } : {};
+      localStorage.setItem(API_STORAGE_KEY, url);
+      localStorage.setItem(KEY_STORAGE_KEY, key);
+      // Update indicator
+      try {
+        const display = new URL(url).host;
+        document.getElementById('api-url-label').textContent = display;
+      } catch { document.getElementById('api-url-label').textContent = url; }
+      addLog('info', `Connected to ${url}`);
+      hideConnect();
+      fetchState();
+    } else {
+      errEl.textContent = '✗ Connected but got unexpected response';
+    }
+  } catch(e) {
+    errEl.textContent = '✗ Could not reach that URL — check it is running and correct';
+  }
+}
+
+// Show connect modal on load if no saved URL, else auto-connect
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem(API_STORAGE_KEY);
+  if (!saved) {
+    showConnect();
+  } else {
+    try {
+      const display = new URL(API).host;
+      document.getElementById('api-url-label').textContent = display;
+    } catch { document.getElementById('api-url-label').textContent = API; }
+    hideConnect();
+  }
+});
 
 // ── CLOCK ──
 setInterval(() => {
