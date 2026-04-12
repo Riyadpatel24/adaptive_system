@@ -22,6 +22,8 @@
   --amber-dim:  rgba(255,171,0,.1);
   --red:        #ff3860;
   --red-dim:    rgba(255,56,96,.1);
+  --purple:     #a78bfa;
+  --purple-dim: rgba(167,139,250,.12);
   --text:       #b8cfe0;
   --text-mid:   #567080;
   --text-low:   #1e3040;
@@ -160,7 +162,7 @@ body::before {
   display: flex;
   align-items: center;
   padding: 0 24px;
-  gap: 16px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
@@ -184,6 +186,21 @@ body::before {
 }
 
 .clock { font-family: var(--mono); font-size: 13px; color: var(--text-mid); }
+
+/* ─── Topbar action buttons ─── */
+.topbar-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 11px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-mid);
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer; transition: border-color .2s, color .2s, background .2s;
+}
+.topbar-btn:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+.topbar-btn.admin-btn:hover { border-color: var(--purple); color: var(--purple); background: var(--purple-dim); }
 
 /* ─── PANELS ─── */
 .panels { flex: 1; overflow: hidden; position: relative; }
@@ -268,6 +285,7 @@ canvas { max-height: 180px; }
 .badge.warning  { background: rgba(255,171,0,.08); color: #ffd066; border: 1px solid rgba(255,208,102,.2); }
 .badge.ok, .badge.healthy { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,179,.25); }
 .badge.cooldown { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0,229,255,.25); }
+.badge.admin { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.3); }
 
 .risk-bar-wrap { width: 80px; height: 4px; background: var(--border); border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 6px; }
 .risk-bar-fill { height: 100%; border-radius: 2px; transition: width .5s; }
@@ -314,7 +332,7 @@ canvas { max-height: 180px; }
 .metric-row .bar { flex: 1; height: 3px; background: var(--border); border-radius: 2px; }
 .metric-row .bar-fill { height: 100%; border-radius: 2px; transition: width .5s; }
 
-/* ─── DETAIL MODAL ─── */
+/* ─── ENTITY DETAIL MODAL ─── */
 .modal-overlay {
   display: none;
   position: fixed; inset: 0;
@@ -354,13 +372,6 @@ canvas { max-height: 180px; }
 .detail-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
 .detail-item-label { font-family: var(--mono); font-size: 9px; color: var(--text-mid); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
 .detail-item-value { font-family: var(--mono); font-size: 13px; font-weight: 700; }
-.signal-list { display: flex; flex-direction: column; gap: 6px; }
-.signal-item {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 6px; padding: 8px 12px;
-  font-family: var(--mono); font-size: 10px; color: var(--text-mid);
-  line-height: 1.5;
-}
 
 /* ─── THREATS PANEL ─── */
 .threats-list { display: flex; flex-direction: column; gap: 8px; }
@@ -456,6 +467,7 @@ canvas { max-height: 180px; }
 .log-tag.action  { color: var(--green); }
 .log-tag.safety  { color: #a78bfa; }
 .log-tag.root    { color: var(--red); }
+.log-tag.keygen  { color: var(--purple); }
 
 /* Section title */
 .section-title {
@@ -463,6 +475,7 @@ canvas { max-height: 180px; }
   margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
 }
 .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
 /* ─── CONNECT MODAL ─── */
 .connect-overlay {
   display: flex;
@@ -480,7 +493,10 @@ canvas { max-height: 180px; }
   border-radius: 16px;
   width: 480px;
   padding: 36px 40px;
+  animation: modalIn .22s ease;
 }
+@keyframes modalIn { from { opacity:0; transform: translateY(18px); } to { opacity:1; transform: none; } }
+
 .connect-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
 .connect-logo svg { width: 36px; height: 36px; color: var(--cyan); filter: drop-shadow(0 0 8px var(--cyan)); }
 .connect-logo-text { font-family: var(--head); font-size: 18px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
@@ -507,7 +523,21 @@ canvas { max-height: 180px; }
 }
 .connect-btn:hover { background: rgba(0,229,255,.2); }
 .connect-error { font-family: var(--mono); font-size: 11px; color: var(--red); margin-top: 10px; min-height: 16px; }
+.connect-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.connect-divider::before, .connect-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.connect-divider span { font-family: var(--mono); font-size: 10px; color: var(--text-mid); }
+.connect-keygen-btn {
+  width: 100%; padding: 11px;
+  background: var(--purple-dim); border: 1px solid rgba(167,139,250,.3);
+  border-radius: 8px; color: var(--purple);
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; transition: background .2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.connect-keygen-btn:hover { background: rgba(167,139,250,.2); }
 .connect-hint { font-family: var(--mono); font-size: 10px; color: var(--text-mid); margin-top: 16px; line-height: 1.6; }
+
 .api-indicator {
   display: flex; align-items: center; gap: 6px;
   font-family: var(--mono); font-size: 10px; color: var(--text-mid);
@@ -516,6 +546,153 @@ canvas { max-height: 180px; }
 }
 .api-indicator:hover { border-color: var(--cyan); color: var(--cyan); }
 .api-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* ─── KEY GENERATOR MODAL ─── */
+.keygen-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(4,8,15,.92);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.keygen-overlay.open { display: flex; }
+.keygen-box {
+  background: var(--surface);
+  border: 1px solid rgba(167,139,250,.3);
+  border-radius: 16px;
+  width: 460px;
+  padding: 36px 40px;
+  animation: modalIn .22s ease;
+}
+.keygen-icon { font-size: 30px; margin-bottom: 10px; }
+.keygen-title { font-family: var(--head); font-size: 16px; font-weight: 800; margin-bottom: 6px; color: var(--purple); }
+.keygen-sub { font-size: 12px; color: var(--text-mid); margin-bottom: 26px; line-height: 1.6; }
+.keygen-label { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-mid); margin-bottom: 6px; }
+.keygen-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 14px;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  outline: none; transition: border-color .2s; margin-bottom: 16px;
+}
+.keygen-input:focus { border-color: var(--purple); }
+.keygen-input::placeholder { color: var(--text-low); }
+.keygen-btn-primary {
+  width: 100%; padding: 12px; margin-bottom: 10px;
+  background: var(--purple-dim); border: 1px solid rgba(167,139,250,.4);
+  border-radius: 8px; color: var(--purple);
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; transition: background .2s;
+}
+.keygen-btn-primary:hover { background: rgba(167,139,250,.22); }
+.keygen-btn-ghost {
+  width: 100%; padding: 11px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-mid);
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: border-color .2s, color .2s;
+}
+.keygen-btn-ghost:hover { border-color: var(--text-mid); color: var(--text); }
+.keygen-result { display: none; }
+.keygen-warn { font-family: var(--mono); font-size: 10px; color: var(--amber); margin-bottom: 10px; padding: 8px 12px; background: var(--amber-dim); border-radius: 5px; }
+.key-display {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+}
+.key-display code { flex: 1; font-size: 11px; color: var(--green); word-break: break-all; font-family: var(--mono); }
+.copy-btn {
+  flex-shrink: 0; background: transparent; border: 1px solid var(--border);
+  border-radius: 5px; padding: 5px 9px; cursor: pointer; color: var(--text-mid);
+  font-size: 15px; transition: all .15s;
+}
+.copy-btn:hover { color: var(--green); border-color: var(--green); }
+.copy-status { font-family: var(--mono); font-size: 11px; color: var(--green); margin-top: -8px; margin-bottom: 12px; min-height: 16px; }
+.keygen-use-btn {
+  width: 100%; padding: 12px; margin-bottom: 10px;
+  background: var(--green-dim); border: 1px solid rgba(0,255,179,.3);
+  border-radius: 8px; color: var(--green);
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; transition: background .2s;
+}
+.keygen-use-btn:hover { background: rgba(0,255,179,.18); }
+
+/* ─── ADMIN MODAL ─── */
+.admin-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(4,8,15,.92);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.admin-overlay.open { display: flex; }
+.admin-box {
+  background: var(--surface);
+  border: 1px solid rgba(167,139,250,.25);
+  border-radius: 16px;
+  width: 640px;
+  max-height: 82vh;
+  display: flex; flex-direction: column;
+  animation: modalIn .22s ease;
+}
+.admin-header {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.admin-header-icon { font-size: 22px; }
+.admin-header-text { flex: 1; }
+.admin-title { font-family: var(--head); font-size: 15px; font-weight: 800; color: var(--purple); }
+.admin-sub { font-family: var(--mono); font-size: 10px; color: var(--text-mid); margin-top: 2px; }
+.admin-close {
+  width: 28px; height: 28px; border-radius: 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-mid); cursor: pointer; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+}
+.admin-close:hover { color: var(--text); }
+.admin-toolbar {
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.admin-refresh-btn {
+  padding: 6px 14px;
+  background: var(--purple-dim); border: 1px solid rgba(167,139,250,.3);
+  border-radius: 6px; color: var(--purple);
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+}
+.admin-refresh-btn:hover { background: rgba(167,139,250,.22); }
+.admin-role-badge { font-family: var(--mono); font-size: 10px; color: var(--text-mid); margin-left: auto; }
+.admin-body { flex: 1; overflow-y: auto; padding: 20px 28px; }
+.admin-body::-webkit-scrollbar { width: 4px; }
+.admin-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.admin-keys-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+.admin-keys-table th {
+  text-align: left; padding: 8px 10px;
+  color: var(--text-mid); font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.admin-keys-table td { padding: 10px 10px; border-bottom: 1px solid var(--border2); color: var(--text); }
+.admin-keys-table tr:hover td { background: var(--border2); }
+.admin-keys-table tr:last-child td { border-bottom: none; }
+.admin-empty { text-align: center; padding: 40px 20px; color: var(--text-mid); font-family: var(--mono); font-size: 12px; }
+.revoke-btn {
+  padding: 3px 10px;
+  background: transparent; border: 1px solid rgba(255,56,96,.4);
+  color: var(--red); border-radius: 4px; cursor: pointer;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  transition: all .15s;
+}
+.revoke-btn:hover { background: var(--red-dim); }
+.key-active { color: var(--green); font-weight: 700; }
+.key-revoked { color: var(--text-mid); }
 </style>
 </head>
 <body>
@@ -571,6 +748,14 @@ canvas { max-height: 180px; }
     <div class="brand">ADAPTIVE <span>SYSTEM</span></div>
     <div class="version">v2.4.1</div>
     <div class="spacer"></div>
+    <!-- 🔑 Get API Key button -->
+    <button class="topbar-btn" onclick="showKeyGen()" title="Generate a free API key">
+      🔑 Get API Key
+    </button>
+    <!-- 🛡 Admin button -->
+    <button class="topbar-btn admin-btn" id="admin-btn" onclick="showAdmin()" title="Admin — manage all keys" style="display:none">
+      🛡 Admin
+    </button>
     <div class="api-indicator" id="api-indicator" onclick="showConnect()" title="Click to change connection">
       <div class="dot"></div>
       <span id="api-url-label">localhost:8000</span>
@@ -664,7 +849,7 @@ canvas { max-height: 180px; }
 
     <!-- ACTIONS -->
     <div class="panel" id="panel-actions">
-      <div class="section-title">Actions & Chaos Engineering</div>
+      <div class="section-title">Actions &amp; Chaos Engineering</div>
       <div class="actions-grid">
         <div>
           <div class="section-title" style="font-size:12px">Recent Actions</div>
@@ -715,7 +900,9 @@ canvas { max-height: 180px; }
   </div>
 </main>
 
-<!-- CONNECT MODAL -->
+<!-- ══════════════════════════════════════════════════ -->
+<!-- CONNECT MODAL                                      -->
+<!-- ══════════════════════════════════════════════════ -->
 <div class="connect-overlay" id="connect-overlay">
   <div class="connect-box">
     <div class="connect-logo">
@@ -734,11 +921,70 @@ canvas { max-height: 180px; }
     </div>
     <div class="connect-field">
       <div class="connect-label">API Key</div>
-      <input class="connect-input" id="input-api-key" type="password" placeholder="Your X-API-Key value from .env" />
+      <input class="connect-input" id="input-api-key" type="password" placeholder="Your X-API-Key value" />
     </div>
     <button class="connect-btn" onclick="handleConnect()">Connect →</button>
     <div class="connect-error" id="connect-error"></div>
-    <div class="connect-hint">💡 Leave API Key blank if you haven't set one.<br>Your settings are saved in the browser for next time.</div>
+    <div class="connect-divider"><span>or</span></div>
+    <button class="connect-keygen-btn" onclick="hideConnect(); showKeyGen()">
+      🔑 Generate a free API key first
+    </button>
+    <div class="connect-hint">💡 Don't have a key? Click above to generate one instantly.<br>Your settings are saved in the browser for next time.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- KEY GENERATOR MODAL                                -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="keygen-overlay" id="keygen-overlay">
+  <div class="keygen-box">
+    <div class="keygen-icon">🔑</div>
+    <div class="keygen-title">Generate API Key</div>
+    <div class="keygen-sub">Create your personal API key to access the Adaptive System dashboard. Your key is shown <strong style="color:var(--amber)">once only</strong> — copy it immediately.</div>
+
+    <!-- Step 1: Input form -->
+    <div id="keygen-form">
+      <div class="keygen-label">Your name / label for this key</div>
+      <input class="keygen-input" id="keygen-name" type="text" placeholder="e.g. Riyad personal laptop" maxlength="60" />
+      <button class="keygen-btn-primary" onclick="handleGenerateKey()">Generate Key →</button>
+      <button class="keygen-btn-ghost" onclick="hideKeyGen()">Cancel</button>
+    </div>
+
+    <!-- Step 2: Show generated key -->
+    <div class="keygen-result" id="keygen-result">
+      <div class="keygen-warn">⚠ Copy this key now. It will not be shown again.</div>
+      <div class="keygen-label">Your API Key</div>
+      <div class="key-display">
+        <code id="keygen-output"></code>
+        <button class="copy-btn" onclick="copyKey()" title="Copy">⎘</button>
+      </div>
+      <div class="copy-status" id="copy-status"></div>
+      <button class="keygen-use-btn" onclick="useGeneratedKey()">✓ Use this key →</button>
+      <button class="keygen-btn-ghost" onclick="hideKeyGen()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- ADMIN MODAL                                        -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="admin-overlay" id="admin-overlay">
+  <div class="admin-box">
+    <div class="admin-header">
+      <div class="admin-header-icon">🛡</div>
+      <div class="admin-header-text">
+        <div class="admin-title">Admin — API Keys</div>
+        <div class="admin-sub">Manage all user-generated keys</div>
+      </div>
+      <button class="admin-close" onclick="hideAdmin()">✕</button>
+    </div>
+    <div class="admin-toolbar">
+      <button class="admin-refresh-btn" onclick="loadAdminKeys()">↻ Refresh</button>
+      <div class="admin-role-badge" id="admin-role-label"></div>
+    </div>
+    <div class="admin-body" id="admin-body">
+      <div class="admin-empty">Click Refresh to load keys.</div>
+    </div>
   </div>
 </div>
 
@@ -754,25 +1000,50 @@ canvas { max-height: 180px; }
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
 const API_STORAGE_KEY = 'adaptive_api_url';
 const KEY_STORAGE_KEY = 'adaptive_api_key';
-let API = localStorage.getItem(API_STORAGE_KEY) || 'http://localhost:8000';
+let API     = localStorage.getItem(API_STORAGE_KEY) || 'http://localhost:8000';
 let API_KEY = localStorage.getItem(KEY_STORAGE_KEY) || '';
 let HEADERS = API_KEY ? { 'X-API-Key': API_KEY } : {};
-let riskHistory = [];
-let logLines = [];
-let actionLines = [];
+let currentRole = null;   // 'admin' | 'user' | null
+let riskHistory  = [];
+let logLines     = [];
+let actionLines  = [];
 let lastEntities = {};
 let riskChart, stateChart;
+let _generatedKey = '';
 
-// ── CONNECT MODAL ──
+// ══════════════════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════════════════
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8);
+}, 1000);
+
+// ══════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('panel-' + item.dataset.panel).classList.add('active');
+  });
+});
+
+// ══════════════════════════════════════════════════════
+// CONNECT MODAL
+// ══════════════════════════════════════════════════════
 function showConnect() {
   document.getElementById('input-api-url').value = API;
   document.getElementById('input-api-key').value = API_KEY;
   document.getElementById('connect-error').textContent = '';
   document.getElementById('connect-overlay').classList.remove('hidden');
 }
-
 function hideConnect() {
   document.getElementById('connect-overlay').classList.add('hidden');
 }
@@ -783,72 +1054,243 @@ async function handleConnect() {
   const errEl = document.getElementById('connect-error');
 
   if (!url) { errEl.textContent = '✗ API URL is required'; return; }
-
   errEl.textContent = 'Testing connection...';
+
   try {
-    const res = await fetch(url + '/health', { headers: key ? { 'X-API-Key': key } : {} });
+    const res  = await fetch(url + '/health', { headers: key ? { 'X-API-Key': key } : {} });
     const data = await res.json();
+
     if (data.status === 'ok') {
-      API = url;
+      API     = url;
       API_KEY = key;
       HEADERS = key ? { 'X-API-Key': key } : {};
       localStorage.setItem(API_STORAGE_KEY, url);
       localStorage.setItem(KEY_STORAGE_KEY, key);
-      // Update indicator
+
       try {
-        const display = new URL(url).host;
-        document.getElementById('api-url-label').textContent = display;
-      } catch { document.getElementById('api-url-label').textContent = url; }
+        document.getElementById('api-url-label').textContent = new URL(url).host;
+      } catch {
+        document.getElementById('api-url-label').textContent = url;
+      }
+
       addLog('info', `Connected to ${url}`);
       hideConnect();
-      fetchState();
+      fetchState();  // immediate fetch to resolve role
     } else {
-      errEl.textContent = '✗ Connected but got unexpected response';
+      errEl.textContent = '✗ Unexpected response from server';
     }
   } catch(e) {
-    errEl.textContent = '✗ Could not reach that URL — check it is running and correct';
+    errEl.textContent = '✗ Could not reach that URL — is the server running?';
   }
 }
 
-// Show connect modal on load if no saved URL, else auto-connect
+// ══════════════════════════════════════════════════════
+// KEY GENERATOR MODAL
+// ══════════════════════════════════════════════════════
+function showKeyGen() {
+  // Reset to step 1
+  document.getElementById('keygen-name').value = '';
+  document.getElementById('keygen-form').style.display = 'block';
+  document.getElementById('keygen-result').style.display = 'none';
+  document.getElementById('copy-status').textContent = '';
+  document.getElementById('keygen-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('keygen-name').focus(), 120);
+}
+function hideKeyGen() {
+  document.getElementById('keygen-overlay').classList.remove('open');
+}
+
+async function handleGenerateKey() {
+  const name = document.getElementById('keygen-name').value.trim();
+  if (!name || name.length < 2) {
+    alert('Please enter a name (at least 2 characters).');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/keys/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert('Error: ' + (err.detail || res.statusText));
+      return;
+    }
+
+    const data = await res.json();
+    _generatedKey = data.api_key;
+
+    document.getElementById('keygen-output').textContent = _generatedKey;
+    document.getElementById('keygen-form').style.display = 'none';
+    document.getElementById('keygen-result').style.display = 'block';
+
+    addLog('keygen', `New API key generated for "${name}"`);
+  } catch(e) {
+    alert('Could not reach the API. Make sure you are connected first.');
+  }
+}
+
+async function copyKey() {
+  try {
+    await navigator.clipboard.writeText(_generatedKey);
+    document.getElementById('copy-status').textContent = '✓ Copied to clipboard!';
+    setTimeout(() => { document.getElementById('copy-status').textContent = ''; }, 2500);
+  } catch {
+    prompt('Copy this key manually:', _generatedKey);
+  }
+}
+
+function useGeneratedKey() {
+  // Pre-fill the connect modal and auto-connect
+  API_KEY = _generatedKey;
+  HEADERS = { 'X-API-Key': API_KEY };
+  localStorage.setItem(KEY_STORAGE_KEY, API_KEY);
+  document.getElementById('input-api-key').value = API_KEY;
+  hideKeyGen();
+  showConnect();
+}
+
+// ══════════════════════════════════════════════════════
+// ADMIN MODAL
+// ══════════════════════════════════════════════════════
+function showAdmin() {
+  document.getElementById('admin-overlay').classList.add('open');
+  document.getElementById('admin-role-label').textContent =
+    currentRole === 'admin' ? '🛡 Connected as admin' : '⚠ Admin key required';
+  loadAdminKeys();
+}
+function hideAdmin() {
+  document.getElementById('admin-overlay').classList.remove('open');
+}
+
+async function loadAdminKeys() {
+  const body = document.getElementById('admin-body');
+  body.innerHTML = '<div class="admin-empty">Loading...</div>';
+
+  try {
+    const res = await fetch(`${API}/admin/keys`, { headers: HEADERS });
+
+    if (res.status === 401 || res.status === 403) {
+      body.innerHTML = `<div class="admin-empty" style="color:var(--red)">
+        ⛔ Admin access required.<br>Connect with your admin API key (from .env) to manage keys.
+      </div>`;
+      return;
+    }
+
+    const data = await res.json();
+    const keys = data.keys || [];
+
+    if (keys.length === 0) {
+      body.innerHTML = '<div class="admin-empty">No user keys have been generated yet.</div>';
+      return;
+    }
+
+    body.innerHTML = `
+      <table class="admin-keys-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Key preview</th>
+            <th>Uses</th>
+            <th>Last used</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${keys.map(k => `
+            <tr id="admin-row-${k.id}">
+              <td style="color:var(--text-mid)">${k.id}</td>
+              <td style="font-weight:700">${escHtml(k.name)}</td>
+              <td><code style="color:var(--cyan);font-size:10px">${escHtml(k.key_preview)}</code></td>
+              <td style="color:var(--text-mid)">${k.use_count}</td>
+              <td style="color:var(--text-mid)">${k.last_used ? k.last_used.slice(0,16) : '—'}</td>
+              <td>
+                <span class="${k.is_active ? 'key-active' : 'key-revoked'}">
+                  ${k.is_active ? '● Active' : '○ Revoked'}
+                </span>
+              </td>
+              <td>
+                ${k.is_active
+                  ? `<button class="revoke-btn" onclick="revokeKey(${k.id})">Revoke</button>`
+                  : '—'}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch(e) {
+    body.innerHTML = `<div class="admin-empty" style="color:var(--red)">Error: ${e.message}</div>`;
+  }
+}
+
+async function revokeKey(keyId) {
+  if (!confirm(`Revoke key #${keyId}? Users with this key will lose access immediately.`)) return;
+  try {
+    const res = await fetch(`${API}/admin/keys/${keyId}/revoke`, {
+      method: 'DELETE',
+      headers: HEADERS
+    });
+    if (!res.ok) throw new Error('Failed to revoke');
+    addLog('warn', `Admin revoked API key #${keyId}`);
+    loadAdminKeys();
+  } catch(e) {
+    alert('Error revoking key: ' + e.message);
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════════════════════════════
+// ROLE HANDLING — show/hide admin button
+// ══════════════════════════════════════════════════════
+function applyRole(role) {
+  currentRole = role;
+  const adminBtn = document.getElementById('admin-btn');
+  if (role === 'admin') {
+    adminBtn.style.display = 'flex';
+  } else {
+    adminBtn.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// INIT — on page load
+// ══════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   const saved = localStorage.getItem(API_STORAGE_KEY);
   if (!saved) {
     showConnect();
   } else {
     try {
-      const display = new URL(API).host;
-      document.getElementById('api-url-label').textContent = display;
-    } catch { document.getElementById('api-url-label').textContent = API; }
+      document.getElementById('api-url-label').textContent = new URL(API).host;
+    } catch {
+      document.getElementById('api-url-label').textContent = API;
+    }
     hideConnect();
   }
+  initCharts();
+  addLog('info', 'Dashboard initialised');
+  fetchState();
+  setInterval(fetchState, 2000);
 });
 
-// ── CLOCK ──
-setInterval(() => {
-  document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8);
-}, 1000);
-
-// ── NAV ──
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    item.classList.add('active');
-    document.getElementById('panel-' + item.dataset.panel).classList.add('active');
-  });
-});
-
-// ── CHARTS ──
+// ══════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════
 function initCharts() {
   const chartDefaults = {
     responsive: true,
     maintainAspectRatio: true,
     plugins: { legend: { display: false } },
-    scales: {
-      x: { display: false },
-      y: { display: false }
-    }
+    scales: { x: { display: false }, y: { display: false } }
   };
 
   riskChart = new Chart(document.getElementById('riskChart'), {
@@ -874,7 +1316,12 @@ function initCharts() {
       labels: ['Healthy', 'Warning', 'Degraded', 'Critical'],
       datasets: [{
         data: [0, 0, 0, 0],
-        backgroundColor: ['rgba(0,255,179,0.6)', 'rgba(255,208,102,0.6)', 'rgba(255,171,0,0.6)', 'rgba(255,56,96,0.6)'],
+        backgroundColor: [
+          'rgba(0,255,179,0.6)',
+          'rgba(255,208,102,0.6)',
+          'rgba(255,171,0,0.6)',
+          'rgba(255,56,96,0.6)'
+        ],
         borderRadius: 4,
         borderSkipped: false,
       }]
@@ -889,59 +1336,64 @@ function initCharts() {
   });
 }
 
-// ── RISK COLOR ──
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
 function riskColor(r) {
   if (r >= 0.85) return 'var(--red)';
   if (r >= 0.6)  return 'var(--amber)';
   if (r >= 0.3)  return '#ffd066';
   return 'var(--green)';
 }
-
 function stateClass(s) {
   if (!s) return 'ok';
   return s.toLowerCase();
 }
 
-// ── FETCH STATE ──
+// ══════════════════════════════════════════════════════
+// FETCH STATE (main data loop)
+// ══════════════════════════════════════════════════════
 async function fetchState() {
   try {
-    const res = await fetch(API + '/state', { headers: HEADERS });
+    const res  = await fetch(API + '/state', { headers: HEADERS });
     const data = await res.json();
     if (data.error) return;
 
-    const entities = data.entities || {};
-    const system   = data.system   || {};
+    // ── Role detection ─────────────────────────────
+    if (data.role && data.role !== currentRole) {
+      applyRole(data.role);
+      addLog('info', `Authenticated as ${data.role}`);
+    }
 
-    // System risk
-    const sysRisk = system.risk || 0;
+    const entities   = data.entities || {};
+    const system     = data.system   || {};
+    const sysRisk    = system.risk   || 0;
+
     riskHistory.push(sysRisk);
     if (riskHistory.length > 60) riskHistory.shift();
 
-    // Stats
     const entityList = Object.entries(entities);
-    const critical = entityList.filter(([,e]) => e.health === 'CRITICAL').length;
-    const pct = Math.round(sysRisk * 100);
+    const critical   = entityList.filter(([,e]) => e.health === 'CRITICAL').length;
+    const pct        = Math.round(sysRisk * 100);
 
-    document.getElementById('d-risk').textContent    = pct + '%';
+    // Stats
+    document.getElementById('d-risk').textContent     = pct + '%';
     document.getElementById('d-critical').textContent = critical;
     document.getElementById('d-total').textContent    = entityList.length;
     document.getElementById('d-mode').textContent     = (system.mode || 'initial').toUpperCase();
-
-    // Risk color
-    const rEl = document.getElementById('d-risk');
-    rEl.style.color = riskColor(sysRisk);
+    document.getElementById('d-risk').style.color     = riskColor(sysRisk);
 
     // Risk chart
-    riskChart.data.labels = riskHistory.map((_, i) => i);
-    riskChart.data.datasets[0].data = riskHistory;
+    riskChart.data.labels              = riskHistory.map((_,i) => i);
+    riskChart.data.datasets[0].data   = riskHistory;
     riskChart.update('none');
 
     // State chart
     const counts = [0,0,0,0];
     entityList.forEach(([,e]) => {
       const h = (e.health || '').toUpperCase();
-      if (h === 'HEALTHY') counts[0]++;
-      else if (h === 'WARNING') counts[1]++;
+      if      (h === 'HEALTHY')  counts[0]++;
+      else if (h === 'WARNING')  counts[1]++;
       else if (h === 'DEGRADED') counts[2]++;
       else if (h === 'CRITICAL') counts[3]++;
     });
@@ -951,11 +1403,10 @@ async function fetchState() {
     // Entity table
     const tbody = document.getElementById('entity-tbody');
     tbody.innerHTML = entityList.map(([id, e]) => {
-      const risk = e.risk ?? 0;
-      const pct2 = Math.round(risk * 100);
+      const risk  = e.risk ?? 0;
+      const pct2  = Math.round(risk * 100);
       const state = e.health || 'OK';
-      const trend = e.trend || '—';
-      const col = riskColor(risk);
+      const col   = riskColor(risk);
       return `<tr onclick="showDetail('${id}', ${JSON.stringify(JSON.stringify(e))})">
         <td style="font-weight:700">${id}</td>
         <td>
@@ -963,21 +1414,20 @@ async function fetchState() {
           <span style="color:${col}">${pct2}%</span>
         </td>
         <td><span class="badge ${stateClass(state)}">${state}</span></td>
-        <td style="color:var(--text-mid)">${trend}</td>
+        <td style="color:var(--text-mid)">${e.trend || '—'}</td>
       </tr>`;
     }).join('');
 
     // Monitor grid
-    const grid = document.getElementById('monitor-grid');
-    grid.innerHTML = entityList.map(([id, e]) => {
-      const risk = e.risk ?? 0;
-      const pct2 = Math.round(risk * 100);
+    document.getElementById('monitor-grid').innerHTML = entityList.map(([id, e]) => {
+      const risk  = e.risk ?? 0;
+      const pct2  = Math.round(risk * 100);
       const state = (e.health || 'OK').toLowerCase();
-      const col = riskColor(risk);
+      const col   = riskColor(risk);
       return `<div class="entity-card ${state}" onclick="showDetail('${id}', ${JSON.stringify(JSON.stringify(e))})">
         <div class="entity-name">${id}</div>
         <div class="entity-risk-big" style="color:${col}">${pct2}%</div>
-        <span class="badge ${state}">${(e.health||'OK')}</span>
+        <span class="badge ${state}">${e.health || 'OK'}</span>
         <div class="entity-metrics">
           <div class="metric-row">TREND <div class="bar"><div class="bar-fill" style="width:${pct2}%;background:${col}"></div></div> ${e.trend||'—'}</div>
           <div class="metric-row">PRED  <div class="bar"><div class="bar-fill" style="width:${Math.round((e.predicted_risk||0)*100)}%;background:var(--cyan)"></div></div> ${Math.round((e.predicted_risk||0)*100)}%</div>
@@ -987,7 +1437,7 @@ async function fetchState() {
 
     // Threats
     const threats = entityList.filter(([,e]) => ['CRITICAL','DEGRADED'].includes(e.health));
-    const tlist = document.getElementById('threats-list');
+    const tlist   = document.getElementById('threats-list');
     if (threats.length === 0) {
       tlist.innerHTML = '<div class="empty-state"><div class="icon">✅</div>No active threats detected</div>';
     } else {
@@ -1004,7 +1454,7 @@ async function fetchState() {
       }).join('');
     }
 
-    // Action log — detect new EXECUTED actions
+    // Action log
     entityList.forEach(([id, e]) => {
       const prev = lastEntities[id];
       if (e.action_status === 'EXECUTED' && (!prev || prev.action_status !== 'EXECUTED')) {
@@ -1017,15 +1467,9 @@ async function fetchState() {
         addLog('warn', `COOLDOWN active for ${id}`);
       }
     });
-
     lastEntities = Object.fromEntries(entityList.map(([id,e]) => [id, {...e}]));
+    if (system.root_cause) addLog('root', `ROOT CAUSE: ${system.root_cause}`);
 
-    // Root cause log
-    if (system.root_cause) {
-      addLog('root', `ROOT CAUSE: ${system.root_cause}`);
-    }
-
-    // Render action log
     const alog = document.getElementById('action-log');
     if (actionLines.length === 0) {
       alog.innerHTML = '<div class="empty-state"><div class="icon">⚡</div>No actions executed yet</div>';
@@ -1039,18 +1483,19 @@ async function fetchState() {
     }
 
   } catch(e) {
-    addLog('error', 'API unreachable — is main.py running?');
+    addLog('error', 'API unreachable — check connection');
   }
 }
 
-// ── LOGS ──
+// ══════════════════════════════════════════════════════
+// LOGS
+// ══════════════════════════════════════════════════════
 function addLog(type, msg) {
   const t = new Date().toTimeString().slice(0,8);
   logLines.unshift({ t, type, msg });
   if (logLines.length > 200) logLines.pop();
   renderLogs();
 }
-
 function renderLogs() {
   document.getElementById('log-container').innerHTML = logLines.map(l =>
     `<div class="log-line">
@@ -1061,13 +1506,14 @@ function renderLogs() {
   ).join('');
 }
 
-// ── ENTITY DETAIL MODAL ──
+// ══════════════════════════════════════════════════════
+// ENTITY DETAIL MODAL
+// ══════════════════════════════════════════════════════
 function showDetail(id, jsonStr) {
-  const e = JSON.parse(jsonStr);
-  document.getElementById('modal-title').textContent = id;
+  const e   = JSON.parse(jsonStr);
   const risk = e.risk ?? 0;
-  const col = riskColor(risk);
-
+  const col  = riskColor(risk);
+  document.getElementById('modal-title').textContent = id;
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-section">
       <div class="modal-section-title">Health Metrics</div>
@@ -1090,7 +1536,6 @@ function showDetail(id, jsonStr) {
   `;
   document.getElementById('modal').classList.add('open');
 }
-
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
 }
@@ -1098,33 +1543,29 @@ document.getElementById('modal').addEventListener('click', e => {
   if (e.target === document.getElementById('modal')) closeModal();
 });
 
-// ── CHAOS ──
+// ══════════════════════════════════════════════════════
+// CHAOS
+// ══════════════════════════════════════════════════════
 async function triggerChaos(type) {
   const statusEl = document.getElementById('chaos-status');
   statusEl.textContent = `Triggering ${type} fault...`;
-  statusEl.className = 'chaos-status';
+  statusEl.className   = 'chaos-status';
   try {
-    const res = await fetch(`${API}/chaos/${type}`, { method: 'POST', headers: HEADERS });
+    const res  = await fetch(`${API}/chaos/${type}`, { method: 'POST', headers: HEADERS });
     const data = await res.json();
     if (data.error) {
       statusEl.textContent = '✗ ' + data.error;
-      statusEl.className = 'chaos-status err';
+      statusEl.className   = 'chaos-status err';
     } else {
-      statusEl.textContent = '✓ ' + data.status;
-      statusEl.className = 'chaos-status ok';
+      statusEl.textContent = '✓ ' + (data.status || 'Triggered');
+      statusEl.className   = 'chaos-status ok';
       addLog('warn', `CHAOS: ${type} fault injected`);
     }
   } catch(e) {
     statusEl.textContent = '✗ API unreachable';
-    statusEl.className = 'chaos-status err';
+    statusEl.className   = 'chaos-status err';
   }
 }
-
-// ── INIT ──
-initCharts();
-addLog('info', 'Dashboard connected to Adaptive System API');
-fetchState();
-setInterval(fetchState, 2000);
 </script>
 </body>
 </html>
