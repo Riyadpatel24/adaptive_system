@@ -1,120 +1,108 @@
 """
+api/key_manager.py
 Hybrid API Key Manager
-- Admin key from .env (full access)
-- User keys stored in SQLite (generated on request)
+ - Admin key: from .env (API_KEY) — full access
+ - User keys: generated on demand, stored in SQLite
 """
 
 import sqlite3
 import secrets
 import os
-from datetime import datetime
 
-DB_PATH = os.getenv("DB_PATH", "storage/events.db")
-KEYS_DB_PATH = os.path.join(os.path.dirname(DB_PATH), "api_keys.db")
+# Store user keys in a sidecar DB next to events.db
+_DB_DIR  = os.path.dirname(os.getenv("DB_PATH", "storage/events.db"))
+KEYS_DB  = os.path.join(_DB_DIR, "api_keys.db")
 
 
-def get_connection():
-    conn = sqlite3.connect(KEYS_DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+def _conn():
+    c = sqlite3.connect(KEYS_DB)
+    c.row_factory = sqlite3.Row
+    return c
 
 
 def init_keys_db():
-    """Create the api_keys table if it doesn't exist."""
-    conn = get_connection()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS api_keys (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            key         TEXT    UNIQUE NOT NULL,
-            name        TEXT    NOT NULL,
-            created_at  TEXT    DEFAULT (datetime('now')),
-            last_used   TEXT,
-            use_count   INTEGER DEFAULT 0,
-            is_active   INTEGER DEFAULT 1
-        )
-    """)
-    conn.commit()
-    conn.close()
+    """Create table on startup if it doesn't already exist."""
+    os.makedirs(_DB_DIR, exist_ok=True)
+    with _conn() as c:
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS api_keys (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                key        TEXT    UNIQUE NOT NULL,
+                name       TEXT    NOT NULL,
+                created_at TEXT    DEFAULT (datetime('now')),
+                last_used  TEXT,
+                use_count  INTEGER DEFAULT 0,
+                is_active  INTEGER DEFAULT 1
+            )
+        """)
+        c.commit()
 
 
 def generate_key(name: str) -> dict:
-    """Generate and store a new API key. Returns the key record."""
+    """Generate a new user key, persist it, return the full record."""
     key = secrets.token_hex(32)
-    conn = get_connection()
-    try:
-        conn.execute(
-            "INSERT INTO api_keys (key, name) VALUES (?, ?)",
-            (key, name)
-        )
-        conn.commit()
-        row = conn.execute("SELECT * FROM api_keys WHERE key = ?", (key,)).fetchone()
+    with _conn() as c:
+        c.execute("INSERT INTO api_keys (key, name) VALUES (?, ?)", (key, name))
+        c.commit()
+        row = c.execute("SELECT * FROM api_keys WHERE key = ?", (key,)).fetchone()
         return dict(row)
-    finally:
-        conn.close()
 
 
 def validate_key(key: str) -> str | None:
     """
-    Returns role string if valid, None if invalid.
+    Return the role for a valid key, or None if invalid.
     Roles: 'admin' | 'user'
     """
+    # 1. Check admin key from environment
     admin_key = os.getenv("API_KEY", "")
-
-    # Admin key check
     if admin_key and key == admin_key:
         return "admin"
 
-    # DB user key check
-    conn = get_connection()
-    try:
-        row = conn.execute(
-            "SELECT id FROM api_keys WHERE key = ? AND is_active = 1",
-            (key,)
+    # 2. Check user keys in DB
+    with _conn() as c:
+        row = c.execute(
+            "SELECT id FROM api_keys WHERE key = ? AND is_active = 1", (key,)
         ).fetchone()
-
         if row:
-            # Update usage stats
-            conn.execute(
+            c.execute(
                 "UPDATE api_keys SET last_used = datetime('now'), use_count = use_count + 1 WHERE id = ?",
                 (row["id"],)
             )
-            conn.commit()
+            c.commit()
             return "user"
-    finally:
-        conn.close()
 
     return None
 
 
 def list_keys() -> list[dict]:
-    """Return all keys (without exposing the actual key value fully)."""
-    conn = get_connection()
-    try:
-        rows = conn.execute(
-            "SELECT id, name, substr(key,1,8)||'...' as key_preview, created_at, last_used, use_count, is_active FROM api_keys ORDER BY id DESC"
-        ).fetchall()
+    """Return all keys with a partial preview (first 8 chars + …)."""
+    with _conn() as c:
+        rows = c.execute("""
+            SELECT
+                id,
+                name,
+                substr(key, 1, 8) || '...' AS key_preview,
+                created_at,
+                last_used,
+                use_count,
+                is_active
+            FROM api_keys
+            ORDER BY id DESC
+        """).fetchall()
         return [dict(r) for r in rows]
-    finally:
-        conn.close()
 
 
 def revoke_key(key_id: int) -> bool:
-    """Deactivate a key by ID."""
-    conn = get_connection()
-    try:
-        conn.execute("UPDATE api_keys SET is_active = 0 WHERE id = ?", (key_id,))
-        conn.commit()
-        return conn.total_changes > 0
-    finally:
-        conn.close()
+    """Soft-delete: deactivate a key by ID."""
+    with _conn() as c:
+        c.execute("UPDATE api_keys SET is_active = 0 WHERE id = ?", (key_id,))
+        c.commit()
+        return c.total_changes > 0
 
 
 def delete_key(key_id: int) -> bool:
-    """Permanently delete a key by ID."""
-    conn = get_connection()
-    try:
-        conn.execute("DELETE FROM api_keys WHERE id = ?", (key_id,))
-        conn.commit()
-        return conn.total_changes > 0
-    finally:
-        conn.close()
+    """Hard-delete a key by ID."""
+    with _conn() as c:
+        c.execute("DELETE FROM api_keys WHERE id = ?", (key_id,))
+        c.commit()
+        return c.total_changes > 0
