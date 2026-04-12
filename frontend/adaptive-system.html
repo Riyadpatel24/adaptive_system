@@ -670,10 +670,11 @@ canvas { max-height: 180px; }
 </div>
 
 <script>
-const API = 'http://localhost:8000';
-// ── Set your API_KEY here (must match API_KEY in your .env) ──
-const API_KEY = '330c7c4120fb13d4abf462a8f3630eb5a8bd92900c8a812bf847d8c9f62de21e';
-const HEADERS = API_KEY ? { 'X-API-Key': API_KEY } : {};
+const API_STORAGE_KEY = 'adaptive_api_url';
+const KEY_STORAGE_KEY = 'adaptive_api_key';
+let API = localStorage.getItem(API_STORAGE_KEY) || 'http://localhost:8000';
+let API_KEY = localStorage.getItem(KEY_STORAGE_KEY) || '';
+let HEADERS = API_KEY ? { 'X-API-Key': API_KEY } : {};
 let riskHistory = [];
 let logLines = [];
 let actionLines = [];
