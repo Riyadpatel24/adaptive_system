@@ -101,7 +101,7 @@ def main():
     ingest_synthetic_telemetry()
 
     snapshot_lock = threading.Lock()
-    set_snapshot(snapshot)
+    set_snapshot(snapshot, snapshot_lock)
     api_thread = threading.Thread(target=start_api, daemon=True)
     api_thread.start()
 
@@ -267,6 +267,9 @@ def main():
 
             if prev != curr:
                 log_adaptation(state)
+
+        # Push updated snapshot to the API server every cycle
+        set_snapshot(snapshot)
 
         time.sleep(2)
 
