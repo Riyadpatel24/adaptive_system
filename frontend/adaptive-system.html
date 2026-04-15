@@ -1005,7 +1005,7 @@ canvas { max-height: 180px; }
 // ══════════════════════════════════════════════════════
 const API_STORAGE_KEY = 'adaptive_api_url';
 const KEY_STORAGE_KEY = 'adaptive_api_key';
-let API     = localStorage.getItem(API_STORAGE_KEY) || 'http://localhost:8000';
+let API     = localStorage.getItem(API_STORAGE_KEY) || 'https://adaptive-system.onrender.com';
 let API_KEY = localStorage.getItem(KEY_STORAGE_KEY) || '';
 let HEADERS = API_KEY ? { 'X-API-Key': API_KEY } : {};
 let currentRole = null;   // 'admin' | 'user' | null
